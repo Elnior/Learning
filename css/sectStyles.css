@@ -1,0 +1,56 @@
+section.creating {
+	margin: 0px;
+	padding: 0px;
+	position: fixed;
+	z-index: 4;
+	width: auto;
+	top: 0px;
+	left: 0px;
+	bottom: 0px;
+	right: 0px;
+	background-color: #000000a1;
+}
+section.creating form {
+	margin: 20px auto;
+	background-color: yellow;
+	width: 80%;
+	padding: 10px;
+}
+section.creating form label {
+	display: block;
+	color: black;
+	font: bolder 2.4em monospace;
+	text-align: center;
+	text-decoration: red solid underline;
+	padding: 8px;
+}
+
+section.creating form div.message {
+	text-align: center;
+	font: bold 1.5em normal;
+	color: red;
+}
+
+section.creating form input[type="text"] {
+	font: bold 1.5em monospace;
+	background-color: white;
+	display: block;
+	margin: auto;
+}
+
+section.creating form div.controls {
+	padding: 6px;
+	text-align: center;
+}
+section.creating form div.controls input:not(input[type="text"]) {
+	font: bold 2em monospace;
+	margin: 8px;
+	color: white;
+	cursor: pointer;
+}
+section.creating form div.controls input[type="submit"] {
+	background-color: green;
+}
+section.creating form div.controls input[type="button"] {
+	background-color: red;
+}
