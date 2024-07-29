@@ -3,8 +3,8 @@
 	<head>
 		<meta charset="UTF-8" >
 		<title>I'm Learning English</title>
-		<link rel="stylesheet" href="./css/mainStyles.css" >
-		<link rel="icon" href="./learn.ico" >
+		<link rel="stylesheet" href="mainStyles.css" >
+		<link rel="icon" href="learn.png" >
 	</head>
 	<body>
 		<header>
@@ -13,31 +13,32 @@
 		</header>
 		<main>
 			<nav id="all-sections">
-				<!-- <ul>
-					<li><a href="/numbers">Numbers</a> <button>...</button></li>
-				</ul> -->
-				<!-- <div class="thereAreNo">There are no sections.. create a new section (+)</div> -->
-				<!-- <div id="loader" class="loader">
+				<div id="loader" class="loader">
 					<div class="figure"></div>
 					<div class="caption">Loading</div>
-				</div> -->
+				</div>
 			</nav>
 		</main>
-		<!-- section id="createSection" class="creating">
-			<form method="post" action="/create/section">
-				
-				<label for="section">Seccion Name:</label>
-				
-				<div class="message"></div>
-				
-				<input type="text" placeholder="White here.." name="section" id="section" >
 
-				<div class="controls">
-					<input type="submit" value="Send">
-					<input type="button" value="Cancel">
-				</div>
-			</form>
-		</section -->
-		
+		<template id="@generateSection">
+			<section id="createSection" class="creating">
+				<form method="post" action="/create/section">
+					
+					<label for="section">Seccion Name:</label>
+					
+					<div class="message"></div>
+					
+					<input type="text" placeholder="White here.." name="section" id="section" >
+
+					<div class="controls">
+						<input type="submit" value="Send">
+						<input type="button" value="Cancel">
+					</div>
+				</form>
+			</section>
+		</template>
+
+		<!-- Main script -->
+		<script type="module" src="toLearn.js"></script>
 	</body>
 </html>

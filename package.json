@@ -1,0 +1,16 @@
+{
+  "name": "i'm-learning-english",
+  "version": "1.0.0",
+  "main": "Learning.js",
+  "type": "module",
+  "scripts": {
+    "test": "node Learning.js"
+  },
+  "keywords": [],
+  "author": "Elnior Loreh",
+  "license": "MIT",
+  "description": "0",
+  "dependencies": {
+    "anully": "^1.0.1"
+  }
+}
