@@ -54,3 +54,35 @@ section.creating form div.controls input[type="submit"] {
 section.creating form div.controls input[type="button"] {
 	background-color: red;
 }
+
+div.options {
+	width: 130px;
+	padding: 0px;
+	margin: 0px;
+	z-index: 2;
+	background-color: black;
+	display: flex;
+	flex-flow: column nowrap;
+	align-items: stretch;
+}
+div.options button.option {
+	background-color: white;
+	color: black;
+	font: bold 18px monospace;
+	margin: 5px;
+	cursor: pointer;
+	transition: 300ms background-color ease;
+}
+div.options button.option:hover {
+	background-color: yellow;
+}
+div.options button.option:active {
+	background-color: gray;
+}
+div.options button.option.delete{
+	background-color: red;
+	color: white;
+}
+div.options button.option.delete:hover {
+	background-color: coral;
+}

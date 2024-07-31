@@ -82,12 +82,16 @@ main nav ul li {
 	display: flex;
 	flex-flow: row wrap;
 	justify-content: space-between;
-	align-items: flex-end;
+	align-items: center;
 	algin-content: center;
 	transform: scale(1);
 	transition: 388ms transform ease-in;
 }
 main nav ul li:hover {
+	transform: scale(1.2);
+	box-shadow: 3px 3px 4px 2px white;
+}
+main nav ul li.selected {
 	transform: scale(1.2);
 	box-shadow: 3px 3px 4px 2px white;
 }

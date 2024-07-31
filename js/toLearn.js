@@ -6,6 +6,7 @@ function delay (time) {
 }
 
 class HandlerSection {
+	#selected = false;
 	#processing = false;
 	#IsPresent = false;
 	#listOfSections = null;
@@ -140,10 +141,53 @@ class HandlerSection {
 			document.body.removeChild($sectionToDelete);
 			this.#processing = false;
 		}
+		else if (evArg.target.matches("button.moreActions")) {
+			let list = document.getElementsByTagName("li");
+			
+			for (let li of list) {
+				if (li.querySelector("button.moreActions") == null) {
+					let $menu = li.querySelector("div#ctx-menu");
+					let $button = document.createElement("button");
+					$button.className = "moreActions";
+					$button.textContent = "...";
+
+					li.replaceChild($button, $menu);
+				}
+				li.classList.remove("selected");
+			}
+
+			evArg.target.parentElement.className = "selected";
+
+			let $options = document.getElementById("@context-menu");
+			let $menu = $options.content.querySelector("div#ctx-menu");
+			$menu.dataset.reference = evArg.target.previousElementSibling.href;
+
+			// import nodes:
+			let node = document.importNode($options.content, true);
+			// replace node
+			evArg.target.parentElement.replaceChild(node, evArg.target);
+
+			this.#selected = true;
+		}
+		else if (this.#selected) {
+			this.#selected = false;
+
+			let list = document.getElementsByTagName("li");
+			
+			for (let li of list)
+				li.classList.remove("selected");
+
+			let $menu = document.querySelector("div#ctx-menu");
+			let $button = document.createElement("button");
+			$button.className = "moreActions";
+			$button.textContent = "...";
+
+			$menu.parentElement.replaceChild($button, $menu);
+		}
 	}
 	static async Main () {
 		const handling = new HandlerSection( document.getElementById("loader"), document.getElementById("all-sections") );
-		await delay (4000);
+		await delay (2000);
 		await handling.loadSections();
 
 		// The click event Handler..
