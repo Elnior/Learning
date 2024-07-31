@@ -22,7 +22,7 @@
 
 		<template id="@generateSection">
 			<section id="createSection" class="creating">
-				<form method="post" action="/create/section">
+				<form method="post" id="creatingSection" action="/create/section">
 					
 					<label for="section">Seccion Name:</label>
 					
@@ -32,7 +32,7 @@
 
 					<div class="controls">
 						<input type="submit" value="Send">
-						<input type="button" value="Cancel">
+						<input type="button" id="cancel" value="Cancel">
 					</div>
 				</form>
 			</section>
