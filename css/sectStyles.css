@@ -1,4 +1,6 @@
-section.creating {
+section.creating,
+section.changeSectionName
+ {
 	margin: 0px;
 	padding: 0px;
 	position: fixed;
@@ -10,13 +12,22 @@ section.creating {
 	right: 0px;
 	background-color: #000000a1;
 }
-section.creating form {
+section.changeSectionName {
+	background-color: #00171ff0;
+}
+
+section.creating form,
+section.changeSectionName form {
 	margin: 20px auto;
 	background-color: yellow;
 	width: 80%;
 	padding: 10px;
 }
-section.creating form label {
+section.changeSectionName form {
+	background-color: purple;
+}
+section.creating form label,
+section.changeSectionName form label {
 	display: block;
 	color: black;
 	font: bolder 2.4em monospace;
@@ -24,34 +35,51 @@ section.creating form label {
 	text-decoration: red solid underline;
 	padding: 8px;
 }
-
-section.creating form div.message {
+section.changeSectionName form label {
+	color: yellow;
+}
+section.creating form div.message,
+section.changeSectionName form div.message {
 	text-align: center;
 	font: bold 1.5em normal;
 	color: red;
 }
 
-section.creating form input[type="text"] {
+section.changeSectionName form div.message {
+	color: cyan;
+}
+
+section.creating form input[type="text"],
+section.changeSectionName form input[type="text"]
+ {
 	font: bold 1.5em monospace;
 	background-color: white;
 	display: block;
 	margin: auto;
 }
+section.changeSectionName form input[type="text"] {
+	background-color: yellow;
+	color: black;
+}
 
-section.creating form div.controls {
+section.creating form div.controls,
+section.changeSectionName form div.controls {
 	padding: 6px;
 	text-align: center;
 }
-section.creating form div.controls input:not(input[type="text"]) {
+section.creating form div.controls input:not(input[type="text"]),
+section.changeSectionName form div.controls input:not(input[type="text"]) {
 	font: bold 2em monospace;
 	margin: 8px;
 	color: white;
 	cursor: pointer;
 }
-section.creating form div.controls input[type="submit"] {
+section.creating form div.controls input[type="submit"],
+section.changeSectionName form div.controls input[type="submit"] {
 	background-color: green;
 }
-section.creating form div.controls input[type="button"] {
+section.creating form div.controls input[type="button"] ,
+section.changeSectionName form div.controls input[type="button"] {
 	background-color: red;
 }
 

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import net from 'node:net';
 import anully from 'anully';
-import http from 'node:http';
+import condition from './forServer/condition.js';
 import { setTimeout as delay } from 'node:timers/promises';
 
 async function isSource (name, dir) {
@@ -11,7 +11,7 @@ async function isSource (name, dir) {
 
 function isAdyacent (path) {
 	return new Promise ((resolve, reject)=>
-		fs.exists("./interactivity", resolve)
+		fs.exists(path, resolve)
 	);
 }
 
@@ -199,7 +199,6 @@ async function dispatchSocket (obR, socketActual) {
 
 		case 'post' :
 			if (obR.path == "/create/section" && obR.headers['content-type'] == "text/txt") {
-				const condition = /^[a-z]{3,}([\s]|[a-z])*$/i;
 				if ( condition.test(obR.body.trim()) ) {
 					try {
 						let dir = "./interactivity";
@@ -253,7 +252,7 @@ async function dispatchSocket (obR, socketActual) {
 									})
 									.on("error", reject)
 									.on("end", ()=> {
-										if (isEqualToBeforeName) return;
+										if (isEqualToBeforeName) return beFromHere.end();
 										
 										beFromHere.write( JSON.stringify(getSection(value)) + "\r\n" );
 										beFromHere.write("]");
@@ -301,7 +300,7 @@ async function dispatchSocket (obR, socketActual) {
 								let sectionsStream = fs.createWriteStream(`${dir}/sections.json`);
 
 								await new Promise ((resolve, reject)=> {
-									sectionsStream.on("finish", ()=> {
+									sectionsStream.on("close", ()=> {
 										socketActual.write(
 											"HTTP/1.1 206 Created\r\n" +
 											"content-type: text/txt\r\n" +
@@ -391,6 +390,140 @@ async function dispatchSocket (obR, socketActual) {
 			}
 		break;
 
+		case 'put' :
+			if (obR.path == "/rename/section") {
+				let { after, before } = JSON.parse(obR.body);
+				let dir = "./interactivity";
+				if (after == before) {
+					socketActual.write(
+						"HTTP/1.1 250 They are the same\r\n" +
+						"content-type: text/txt\r\n" +
+						"connection: close\r\n" +
+						"Sever: NElniorS\r\n" +
+						"Date: " + new Date() + "\r\n" +
+						"\r\n"
+					);
+					socketActual.write("They are the same as this one");
+				}
+				else if(!condition.test(after)) {
+					socketActual.write(
+						"HTTP/1.1 230 invalid name\r\n" +
+						"content-type: text/txt\r\n" +
+						"connection: keep-alive\r\n" +
+						"Server: NElniorS\r\n" +
+						`Date: ${new Date()}\r\n` +
+						"\r\n"
+					);
+					socketActual.write(`the name "${after}" is not acceptable, numbers and symbols is not acceptable; write again.`);
+				}
+				else await new Promise ((resolve, reject)=> {
+					// I'm rename section
+					let sectionsReadableStream = fs.createReadStream(`${dir}/sections.json`);
+					let isRenoved = false;
+
+					let beFromHere = fs.createWriteStream("./fromHere.json");
+					beFromHere.write("[\r\n");
+					let stringForObject = "";
+
+					let isOpen = false;
+					let isClose = false;
+					let isRun = false;
+									
+					const callEnd = ()=> !isRun? resolve(isRun = true) : null;
+
+					sectionsReadableStream.on("data", chunk=> {
+						for (let each of chunk.toString('utf-8')) {
+							// verifing
+							if (each == "{")
+								isOpen = true;
+							else if (each == "}")
+								isClose = true;
+							else {}
+
+							if (isOpen)
+								stringForObject += each;
+							else if (each == ",")
+								beFromHere.write(each + "\r\n");
+							else {}
+
+							if (isClose) {
+								// for each object
+								let forEvaluate = JSON.parse(stringForObject);
+
+								if (forEvaluate.name == after) {
+									isRenoved = false;
+									sectionsReadableStream.destroy();
+									break;
+								}
+								else if (forEvaluate.name == before) {
+									isRenoved = true;
+									forEvaluate.name = after;
+									forEvaluate.reference = after.replaceAll(" ", "-");
+								}
+
+								beFromHere.write(JSON.stringify(forEvaluate));
+								// reset values
+								isOpen = false;
+								isClose = false;
+								stringForObject = "";
+							}
+						}
+					})
+					.on("error", reject)
+					.on("end", ()=> {
+						if (!isRenoved) return beFromHere.end();
+						beFromHere.write("\r\n]");
+						beFromHere.end();
+					})
+					.on("close", ()=> {
+							if (!isRenoved) {
+								socketActual.write(
+									"HTTP/1.1 231 No previous\r\n" +
+									"content-type: text/txt\r\n" +
+									"connection: close\r\n" +
+									"Server: NElniorS\r\n" +
+									`Date: ${new Date()}\r\n` +
+									"\r\n"
+								);
+								socketActual.write("No previous name for name change or already exists in the collection.");
+								callEnd();
+							}
+							else {
+								beFromHere = fs.createReadStream(beFromHere.path);
+								let sectionsWritableStream = fs.createWriteStream(sectionsReadableStream.path);
+
+								sectionsWritableStream
+								.on("close", callEnd)
+								.on("error", reject);
+
+								beFromHere.pipe(sectionsWritableStream);
+
+										socketActual.write(
+											"HTTP/1.1 210 changed\r\n" +
+											"content-type: text/txt\r\n" +
+											"connection: close\r\n" +
+											"Server: NElniorS\r\n" +
+											`Date: ${new Date()}\r\n` +
+											"\r\n"
+										);
+										socketActual.write("changed successfully!");
+									}
+								});
+				});
+			}
+			else {
+				socketActual.write(
+					"HTTP/1.1 470 bad put\r\n" +
+					"content-type: text/txt\r\n" +
+					"connection: close\r\n" +
+					"Sever: NElniorS\r\n" +
+					"Date: " + Date.now() + "\r\n" +
+					"\r\n"
+				);
+				socketActual.write("bad_put_request");
+			}
+		break;
+
 		default :
 			socketActual.write(
 				"HTTP/1.1 409 there are no method\r\n" +
@@ -415,7 +548,12 @@ function serverHandler (socket) {
 		.then(target=> {
 			target.end();
 		})
-		.catch(error => console.log("Error(0x001)", error));		
+		.catch(error => {
+			// debug error:
+			console.log("Error(0x001): ", error.message);
+			// finished
+			socket.end();
+		});		
 	})
 	.on("error", (error)=> console.log("Error(0x000)", error))
 	.on("end", ()=> console.log("I'm end"))
@@ -424,6 +562,8 @@ function serverHandler (socket) {
 }
 
 const Server = net.createServer(serverHandler);
+
+process.title = "I'm Learning English - - Server";
 
 Server
 .listen(80, '127.0.9.84', (info = Server.address())=> console.log(`Running Server: ${info.address}:${info.port}\r\n`));
