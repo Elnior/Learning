@@ -4,6 +4,39 @@ import anully from 'anully';
 import condition from './forServer/condition.js';
 import { setTimeout as delay } from 'node:timers/promises';
 
+class TransferManager {
+	static activeTransfer = true;
+	constructor (writable) {
+		this.writable = writable;
+		this.byteLengthInserted = 0;
+	}
+	writeTo (actualBuffer) {
+		if (this.writable) {
+			try {
+				this.byteLengthInserted += actualBuffer.byteLength;
+				this.writable.write(actualBuffer);
+			}
+			catch (error) {
+				console.log("Error (0x003): " + error.message);
+			}
+		}
+		else {}
+		return true;
+	}
+	finishWrite () {
+		if (this.writable) {
+			try {
+				this.writable.end();
+			}
+			catch (error) {
+				console.log("Error (0x005): " + error.message);
+			}
+		}
+		else {}
+		return true;
+	}
+}
+
 async function isSource (name, dir) {
 	let files = await fs.promises.readdir(dir);
 	return files.indexOf(name) !== -1;
@@ -23,26 +56,12 @@ function getSection (name) {
 	}
 }
 
-async function dispatchSocket (obR, socketActual) {
+async function dispatchSocket (obR, socketActual, transfering) {
 	switch (obR.method.toLowerCase()) {
 		case 'get' :
-			if(obR.path == "/" && obR.headers.accept.indexOf("text/html") !== -1) {
-				const interfaceStream = fs.createReadStream("./interface.html");
-				await new Promise((resolve, reject)=> {
-					let isRun = false;
-
-					const callEnd = ()=> !isRun? resolve(isRun = true) : null;
-
-					interfaceStream
-					.on("open", ()=> socketActual.write(
-							"HTTP/1.1 200 Ready\r\n" +
-							"content-type: text/html; charset=utf-8\r\n" +
-							"connection: keep-alive\r\n" +
-							"server: NElniorS\r\n" +
-							"\r\n"
-						))
-					.on("data", chunk=> socketActual.write(chunk))
-					.on("error", error=> {
+			if(obR.path == "/" && obR.headers.accept.indexOf("text/html") !== -1)
+				await new Promise(async (resolve, reject)=> {
+					if (!(await isAdyacent("./interface.html"))) {
 						socketActual.write(
 							"HTTP/1.1 504 Falied\r\n" +
 							"content-type: text/txt\r\n" +
@@ -51,91 +70,100 @@ async function dispatchSocket (obR, socketActual) {
 							"\r\n"
 						);
 						socketActual.write("there are internal errors..");
-						callEnd();
-					})
-					.on("end", callEnd)
-					.on("close", callEnd);
-				});
-			}
-			else if (obR.path == "/" && obR.headers.accept.indexOf("application/json") == 0) {
+						return resolve();
+					}
+					const interfaceStream = fs.createReadStream("./interface.html");
+					const stat = await fs.promises.stat(interfaceStream.path);
 
-				const sectionStream = fs.createReadStream("./interactivity/sections.json");
-
-				await new Promise((resolve, reject)=> {
 					let isRun = false;
-
 					const callEnd = ()=> !isRun? resolve(isRun = true) : null;
-
-					sectionStream
-					.on("open", ()=> socketActual.write(
-							"HTTP/1.1 200 ok\r\n" +
-							"content-type: application/json\r\n" +
-							"connection: keep-alive\r\n" +
-							"server: NElniorS\r\n" +
-							"\r\n"
-						))
-					.on("data", chunk=> socketActual.write(chunk))
-					.on("error", error=> {
-						socketActual.write(
-						"HTTP/1.1 419 there are no\r\n" +
-						"content-type: text/txt\r\n" +
-						"connection: close\r\n" +
+					socketActual.write(
+						"HTTP/1.1 200 Ready\r\n" +
+						"content-type: text/html; charset=utf-8\r\n" +
+						`content-length: ${stat.size}\r\n` +
+						"connection: keep-alive\r\n" +
 						"server: NElniorS\r\n" +
 						"\r\n"
 					);
-					socketActual.write("There are no sections.. Create a new section (+)");
-						callEnd();
-					})
+
+					interfaceStream
+					.on("data", chunk=> socketActual.write(chunk))
 					.on("end", callEnd)
 					.on("close", callEnd);
 				});
-			}
-			else if (await isSource(obR.path.replace("/", ""), "./css")) {
-				const fileCssStream = fs.createReadStream(`./css${obR.path}`);
-				await new Promise((resolve, reject)=> {
-					let isRun = false;
 
+			else if (obR.path == "/" && obR.headers.accept.indexOf("application/json") == 0)
+				await new Promise(async (resolve, reject)=> {
+					if (!(await isAdyacent("./interactivity/sections.json"))) {
+						socketActual.write(
+							"HTTP/1.1 419 there are no\r\n" +
+							"content-type: text/txt\r\n" +
+							"connection: close\r\n" +
+							"server: NElniorS\r\n" +
+							"\r\n"
+						);
+						socketActual.write("There are no sections.. Create a new section (+)");
+						return resolve();
+					}
+					const sectionStream = fs.createReadStream("./interactivity/sections.json");
+					const stat = await fs.promises.stat(sectionStream.path);
+					
+					let isRun = false;
 					const callEnd = ()=> !isRun? resolve(isRun = true) : null;
+					socketActual.write(
+						"HTTP/1.1 200 ok\r\n" +
+						"content-type: application/json\r\n" +
+						`content-length: ${stat.size}\r\n` +
+						"connection: keep-alive\r\n" +
+						"server: NElniorS\r\n" +
+						"\r\n"
+					);
+					sectionStream
+					.on("data", chunk=> socketActual.write(chunk))
+					.on("end", callEnd)
+					.on("close", callEnd);
+				});
+
+			else if (await isSource(obR.path.replace("/", ""), "./css"))
+				await new Promise(async (resolve, reject)=> {
+					const fileCssStream = fs.createReadStream(`./css${obR.path}`);
+					const stat = await fs.promises.stat(fileCssStream.path);
+
+					let isRun = false;
+					const callEnd = ()=> !isRun? resolve(isRun = true) : null;
+					
+					socketActual.write(
+						"HTTP/1.1 200 Ready\r\n" +
+						"content-type: text/css\r\n" +
+						`content-length: ${stat.size}\r\n` +
+						"connection: keep-alive\r\n" +
+						"server: NElniorS\r\n" +
+						"\r\n"
+					);
 
 					fileCssStream
-					.on("open", ()=> socketActual.write(
-							"HTTP/1.1 200 Ready\r\n" +
-							"content-type: text/css\r\n" +
-							"connection: keep-alive\r\n" +
-							"server: NElniorS\r\n" +
-							"\r\n"
-						))
 					.on("data", chunk=> socketActual.write(chunk))
-					.on("error", error=> {
-						socketActual.write(
-							"HTTP/1.1 504 Falied\r\n" +
-							"content-type: text/txt\r\n" +
-							"connection: close\r\n" +
-							"server: NElniorS\r\n" +
-							"\r\n"
-						);
-						socketActual.write("there are internal errors..");
-						callEnd();
-					})
 					.on("end", callEnd)
 					.on("close", callEnd);
 				});
-			}
-			else if (await isSource(obR.path.replace("/", ""), "./js")) {
-				const fileJsStream = fs.createReadStream(`./js${obR.path}`);
-				await new Promise((resolve, reject)=> {
-					let isRun = false;
 
+			else if (await isSource(obR.path.replace("/", ""), "./js"))
+				await new Promise(async (resolve, reject)=> {
+					const fileJsStream = fs.createReadStream(`./js${obR.path}`);
+					const stat = await fs.promises.stat(fileJsStream.path);
+
+					let isRun = false;
 					const callEnd = ()=> !isRun? resolve(isRun = true) : null;
+					socketActual.write(
+						"HTTP/1.1 200 Ok\r\n" +
+						"content-type: application/javascript\r\n" +
+						`content-length: ${stat.size}\r\n` +
+						"connection: keep-alive\r\n" +
+						"server: NElniorS\r\n" +
+						"\r\n"
+					);
 
 					fileJsStream
-					.on("open", ()=> socketActual.write(
-							"HTTP/1.1 200 Ok\r\n" +
-							"content-type: application/javascript\r\n" +
-							"connection: keep-alive\r\n" +
-							"server: NElniorS\r\n" +
-							"\r\n"
-						))
 					.on("data", chunk=> socketActual.write(chunk))
 					.on("error", error=> {
 						socketActual.write(
@@ -151,55 +179,58 @@ async function dispatchSocket (obR, socketActual) {
 					.on("end", callEnd)
 					.on("close", callEnd);
 				});
-			}
-			else if (obR.path == "/learn.png") {
-				const iconStream = fs.createReadStream("./learn.ico");
-				await new Promise((resolve, reject)=> {
+
+			else if (obR.path == "/learn.png") 
+				await new Promise(async (resolve, reject)=> {
+					if (!(await isAdyacent("./learn.ico"))) {
+						socketActual.write(
+							"HTTP/1.1 504 Falied\r\n" +
+							"content-type: text/txt\r\n" +
+							"connection: close\r\n" +
+							"server: NElniorS\r\n" +
+							"\r\n"
+						);
+						socketActual.write("there are internal errors..");
+						return resolve();
+					}
+					const iconStream = fs.createReadStream("./learn.ico");
+					const stat = await fs.promises.stat(iconStream.path);
 					let isRun = false;
-
 					const callEnd = ()=> !isRun? resolve(isRun = true) : null;
-
-					iconStream
-					.on("open", ()=> socketActual.write(
+						socketActual.write(
 							"HTTP/1.1 200 Ready icon\r\n" +
 							"content-type: image/x-icon\r\n" +
+							`content-length: ${stat.size}\r\n` +
 							"connection: keep-alive\r\n" +
 							"server: NElniorS\r\n" +
 							"\r\n"
-						))
-					.on("data", chunk=> socketActual.write(chunk))
-					.on("error", error=> {
-						socketActual.write(
-							"HTTP/1.1 504 Falied\r\n" +
-							"content-type: text/txt\r\n" +
-							"connection: close\r\n" +
-							"server: NElniorS\r\n" +
-							"\r\n"
 						);
-						socketActual.write("there are internal errors..");
-						callEnd();
-					})
+
+					iconStream
+					.on("data", chunk=> socketActual.write(chunk))
 					.on("end", callEnd)
 					.on("close", callEnd);
 				});
-			}
+
 			else {
+				let forSend = `<h1 style="color: red; text-align:center">Not found direction: ${obR.path}</h1>`;
 
 				socketActual.write(
 					"HTTP/1.1 404 Not Found\r\n" +
 					"content-type: text/html; charset=utf-8\r\n" +
+					`content-length: ${forSend.length}\r\n` +
 					"connection: close\r\n" +
 					"Server: NElniorS\r\n" +
 					`Date: ${new Date()}\r\n` +
 					"\r\n"
 				);
-				socketActual.write(`<h1 style="color: red; text-align:center">Not found direction: ${obR.path}</h1>`);
+				socketActual.write(forSend);
 			}
 		break;
 
 		case 'post' :
 			if (obR.path == "/create/section" && obR.headers['content-type'] == "text/txt") {
-				if ( condition.test(obR.body.trim()) ) {
+				if ( condition.test(String.fromCharCode(...obR.body)) ) {
 					try {
 						let dir = "./interactivity";
 
@@ -207,7 +238,9 @@ async function dispatchSocket (obR, socketActual) {
 							if (await isAdyacent(`${dir}/sections.json`)) {
 								// I'm set new section
 								let sectionsReadableStream = fs.createReadStream(`${dir}/sections.json`);
-								let value = obR.body.trim(),
+								const stat = await fs.promises.stat(sectionsReadableStream.path);
+
+								let value = String.fromCharCode(...obR.body),
 									isEqualToBeforeName = false;
 
 								let beFromHere = fs.createWriteStream("./fromHere.json");
@@ -261,15 +294,17 @@ async function dispatchSocket (obR, socketActual) {
 									})
 									.on("close", ()=> {
 										if (isEqualToBeforeName) {
+											let message = "This name already exists, please write another one.";
 											socketActual.write(
 												"HTTP/1.1 241 there are this\r\n" +
 												"content-type: text/txt\r\n" +
+												`content-length: ${message.length}\r\n` +
 												"connection: close\r\n" +
 												"Server: NElniorS\r\n" +
 												`Date: ${new Date()}\r\n` +
 												"\r\n"
 											);
-											socketActual.write("This name already exists, please write another one.");
+											socketActual.write(message);
 											callEnd();
 										}
 										else {
@@ -315,7 +350,7 @@ async function dispatchSocket (obR, socketActual) {
 
 									sectionsStream.write("[\r\n");
 
-									sectionsStream.write(JSON.stringify(getSection(obR.body.trim())) + "\r\n");
+									sectionsStream.write(JSON.stringify(getSection(String.fromCharCode(...obR.body))) + "\r\n");
 
 									sectionsStream.write("]");
 
@@ -330,7 +365,7 @@ async function dispatchSocket (obR, socketActual) {
 							let sectionsStream = fs.createWriteStream(`${dir}/sections.json`);
 
 							await new Promise ((resolve, reject)=> {
-								sectionsStream.on("finish", ()=> {
+								sectionsStream.on("close", ()=> {
 									socketActual.write(
 										"HTTP/1.1 206 Created\r\n" +
 										"content-type: text/txt\r\n" +
@@ -345,7 +380,7 @@ async function dispatchSocket (obR, socketActual) {
 
 								sectionsStream.write("[\r\n");
 
-								sectionsStream.write(JSON.stringify(getSection(obR.body.trim())) + "\r\n");
+								sectionsStream.write(JSON.stringify(getSection(String.fromCharCode(...obR.body))) + "\r\n");
 
 								sectionsStream.write("]");
 
@@ -374,9 +409,38 @@ async function dispatchSocket (obR, socketActual) {
 						`Date: ${new Date()}\r\n` +
 						"\r\n"
 					);
-					socketActual.write(`the name "${obR.body.trim()}" is not acceptable, numbers and symbols is not acceptable; write again.`);
+					socketActual.write(`the name "${String.fromCharCode(...obR.body)}" is not acceptable, numbers and symbols is not acceptable; write again.`);
 				}
 			}
+			else if (obR.path == "/setFile" && transfering instanceof TransferManager) 
+				await new Promise((resolve, reject)=> {
+					let [ doYouHaveDisposition ] = Object.keys(obR.headers).filter(el=> /content\-disposition/i.test(el));
+					let nameOfFile = obR.headers[doYouHaveDisposition]? obR.headers[doYouHaveDisposition] : `file${Date.now()}.byn`;
+
+					transfering.writable
+					.on("error", reject)
+					.on("close", ()=> {
+						fs.promises.rename("./interactivity/download.byn", `./interactivity/${nameOfFile}`)
+						.then(()=> {
+							let message = "inserted!";
+							socketActual.write(
+								"HTTP/1.1 222 inserted\r\n" +
+								"content-type: text/txt\r\n" +
+								`content-length: ${message.length}\r\n` +
+								"connection: close\r\n" +
+								"Server: NElniorS\r\n" +
+								`Date: ${Date.now()}\r\n` +
+								"\r\n"
+							);
+							socketActual.write(message);
+							socketActual.end();
+							resolve();
+						})
+						.catch(reject);
+					});
+
+					transfering.writable.write( Buffer.from(obR.body) );
+				});
 			else {
 				socketActual.write(
 					"HTTP/1.1 400 Bad Request\r\n" +
@@ -392,7 +456,7 @@ async function dispatchSocket (obR, socketActual) {
 
 		case 'put' :
 			if (obR.path == "/rename/section") {
-				let { after, before } = JSON.parse(obR.body);
+				let { after, before } = JSON.parse(String.fromCharCode(...obR.body));
 				let dir = "./interactivity";
 				if (after == before) {
 					socketActual.write(
@@ -419,7 +483,7 @@ async function dispatchSocket (obR, socketActual) {
 				else await new Promise ((resolve, reject)=> {
 					// I'm rename section
 					let sectionsReadableStream = fs.createReadStream(`${dir}/sections.json`);
-					let isRenoved = false;
+					let isRenowned = false;
 
 					let beFromHere = fs.createWriteStream("./fromHere.json");
 					beFromHere.write("[\r\n");
@@ -451,12 +515,12 @@ async function dispatchSocket (obR, socketActual) {
 								let forEvaluate = JSON.parse(stringForObject);
 
 								if (forEvaluate.name == after) {
-									isRenoved = false;
+									isRenowned = false;
 									sectionsReadableStream.destroy();
 									break;
 								}
 								else if (forEvaluate.name == before) {
-									isRenoved = true;
+									isRenowned = true;
 									forEvaluate.name = after;
 									forEvaluate.reference = after.replaceAll(" ", "-");
 								}
@@ -471,12 +535,12 @@ async function dispatchSocket (obR, socketActual) {
 					})
 					.on("error", reject)
 					.on("end", ()=> {
-						if (!isRenoved) return beFromHere.end();
+						if (!isRenowned) return beFromHere.end();
 						beFromHere.write("\r\n]");
 						beFromHere.end();
 					})
 					.on("close", ()=> {
-							if (!isRenoved) {
+							if (!isRenowned) {
 								socketActual.write(
 									"HTTP/1.1 231 No previous\r\n" +
 									"content-type: text/txt\r\n" +
@@ -523,6 +587,126 @@ async function dispatchSocket (obR, socketActual) {
 				socketActual.write("bad_put_request");
 			}
 		break;
+		
+		case 'delete' :
+			let reference = obR.path.replace("/", "");
+			let dir = "./interactivity";
+
+			await new Promise ((resolve, reject)=> {
+					// I'm deleting section
+					let sectionsReadableStream = fs.createReadStream(`${dir}/sections.json`);
+					let isRemoved = false;
+					let sure = true;
+
+					let beFromHere = fs.createWriteStream("./fromHere.json");
+					beFromHere.write("[\r\n");
+
+					let twoSections = [];
+					let isExec = false;
+
+					let stringForObject = "";
+
+					let isOpen = false;
+					let isClose = false;
+					let isRun = false;
+									
+					const callEnd = ()=> !isRun? resolve(isRun = true) : null;
+
+					sectionsReadableStream.on("data", chunk=> {
+						for (let each of chunk.toString('utf-8')) {
+							// verifing
+							if (each == "{")
+								isOpen = true;
+							else if (each == "}")
+								isClose = true;
+							else {}
+
+							if (isOpen)
+								stringForObject += each;
+							else {}
+
+							if (isClose) {
+								// for two objects
+								let processed = JSON.parse(stringForObject);
+								twoSections.push(processed);
+								if (twoSections.length == 2) {
+									let [first, second] = twoSections;
+
+									if(first.reference == reference) {
+										isRemoved = true;
+										beFromHere.write((isExec? ",\r\n":"") + JSON.stringify(second));
+										isExec = true;
+									}
+									else if (second.reference == reference) {
+										isRemoved = true;
+										beFromHere.write((isExec? ",\r\n":"") + JSON.stringify(first));
+										isExec = true;
+									}
+									else {
+										beFromHere.write((isExec? ",\r\n":"") + JSON.stringify(first) + ",\r\n");
+										beFromHere.write(JSON.stringify(second));
+										isExec = true;
+									}
+									twoSections = [];
+								}
+								else {}
+								// reset values
+								isOpen = false;
+								isClose = false;
+								stringForObject = "";
+							}
+						}
+					})
+					.on("error", reject)
+					.on("end", ()=> {
+						let [ missing ] = twoSections;
+
+						if (missing !== undefined) 
+							missing.reference == reference? isRemoved = true : beFromHere.write(",\r\n" + JSON.stringify(missing));
+						else {}
+
+						if (!isRemoved) return beFromHere.end();
+						
+
+						beFromHere.write("\r\n]");
+						beFromHere.end();
+					})
+					.on("close", ()=> {
+						if (!isRemoved) {
+							socketActual.write(
+								"HTTP/1.1 214 falied deletion\r\n" +
+								"content-type: text/txt\r\n" +
+								"connection: close\r\n" +
+								"Server: NElniorS\r\n" +
+								`Date: ${new Date()}\r\n` +
+								"\r\n"
+							);
+							socketActual.write("Falied deletion!");
+							callEnd();
+						}
+						else {
+							beFromHere = fs.createReadStream(beFromHere.path);
+							let sectionsWritableStream = fs.createWriteStream(sectionsReadableStream.path);
+
+							sectionsWritableStream
+							.on("close", callEnd)
+							.on("error", reject);
+
+							beFromHere.pipe(sectionsWritableStream);
+
+							socketActual.write(
+								"HTTP/1.1 202 deleted\r\n" +
+								"content-type: text/txt\r\n" +
+								"connection: close\r\n" +
+								"Server: NElniorS\r\n" +
+								`Date: ${new Date()}\r\n` +
+								"\r\n"
+							);
+							socketActual.write(reference.replaceAll("-", " "));
+						}
+					});
+				});
+		break; 
 
 		default :
 			socketActual.write(
@@ -539,26 +723,130 @@ async function dispatchSocket (obR, socketActual) {
 	return socketActual;
 }
 
-function serverHandler (socket) {
-	socket
-	.on("data", chunk=> {
-		const obRequest = anully( chunk.toString("utf-8") );
+async function handlerSockets (socket) {
+	// start
+	return await new Promise((resolve, reject)=> {
+			let isRun = false;
+			const callEnd = ()=> !isRun? resolve(isRun = true) : null;
 
-		dispatchSocket(obRequest, socket)
-		.then(target=> {
-			target.end();
-		})
-		.catch(error => {
-			// debug error:
-			console.log("Error(0x001): ", error.message);
-			// finished
-			socket.end();
-		});		
-	})
-	.on("error", (error)=> console.log("Error(0x000)", error))
-	.on("end", ()=> console.log("I'm end"))
-	.on("finish", ()=> console.log("I have finished!"))
-	.on("close", ()=> console.log("I'm closed\r\n"));
+			let obRequest = null;
+			let transferManager = null;
+			let readed = false;
+			let lengthTotal = 0;
+			let inserted = 0;
+
+			socket
+			// readable event
+			.on("data", async data => {
+				let IamEnd = await new Promise (async (resolve, reject)=> {
+					try {
+						if (obRequest == null) {
+							obRequest = anully( data );
+							inserted = (data.length - obRequest.headerLength);
+						}
+						else {
+							if (transferManager !== null) {
+								inserted += data.byteLength;
+								transferManager.writeTo(data);
+							}
+						}
+						if (obRequest) {
+							let [ doYouHaveBody ] = Object.keys(obRequest.headers).filter(el=> /content\-length/i.test(el));
+
+							if (doYouHaveBody || lengthTotal !== 0) {
+								lengthTotal = Number(obRequest.headers[doYouHaveBody]);
+								// for finish primitive
+								if (inserted == lengthTotal && !readed) {
+									let target = await dispatchSocket(obRequest, socket, transferManager);
+									target.end();
+									readed = true;
+									resolve(true);
+								}
+								// For processing big data
+								else if (!readed) {
+									readed = true;
+
+									if (TransferManager.activeTransfer) {
+										TransferManager.activeTransfer = false;
+
+										transferManager = new TransferManager( fs.createWriteStream("./interactivity/download.byn") );
+										let target = await dispatchSocket(obRequest, socket, transferManager);
+
+										TransferManager.activeTransfer = true;
+										// finished
+										target.end();
+										resolve(true);
+									}
+									else {
+										socket.destroy();
+										resolve(true);
+									}
+								}
+								// for finish more
+								else if (inserted == lengthTotal) 
+									transferManager.finishWrite();
+								else resolve(false);
+							}
+							else // So there are no body
+								dispatchSocket(obRequest, socket)
+								.then(target=> {
+									target.end();
+									resolve(true);
+								})
+								.catch(error => {
+									// debug error:
+									console.log("Error(0x001): ", error.message);
+									// finished
+									socket.end();
+									resolve(true);
+								});
+						}
+						else {
+							let message = "<h1 style=\"padding: 10px; text-align:center;" +
+							"color: red; background-color: black; color: white; font: bold 2m serif\">" +
+							"Error (444): invalid request, try again later</h1>";
+							socket.write(
+								"HTTP/1.1 444 invalid request\r\n" +
+								"content-type: text/html; charset=utf-8\r\n" +
+								`content-length: ${message.length}\r\n` +
+								"connection: keep-alive\r\n" +
+								"server: NElniorS\r\n" +
+								"\r\n"
+							);
+							socket.write(message);
+							socket.end();
+							resolve(true);
+						}
+					} catch (error) {
+						console.log("Error (0x004): ", error);
+						resolve(true);
+					}
+				});
+				if (IamEnd)
+					callEnd();
+			})
+			// general error event
+			.on("error", error=> console.log("Error(0x000): ", error))
+			// readable event
+			.on("end", ()=> {
+				if (readed) {}
+				else // destroy the socket 
+					socket.destroy();
+			})
+			// writable event
+			.on("finish",()=> null)
+			// general close event
+			.on("close", ()=> {
+				if (!readed)
+					callEnd();
+			});
+	});
+	// end
+}
+
+async function serverHandler (socket) {
+	// for everythin:
+	await handlerSockets(socket);
 }
 
 const Server = net.createServer(serverHandler);

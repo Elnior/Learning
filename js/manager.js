@@ -1,4 +1,5 @@
 export default class Manager {
+	#elementForDeletion = null;
 	getFragmentOfDocument (sections) {
 		const fragment = document.createDocumentFragment();
 
@@ -15,6 +16,10 @@ export default class Manager {
 			$li.appendChild($a);
 			$li.appendChild($button);
 			fragment.appendChild($li);
+		}
+		if (sections.length == 0) {
+			this.thereAreNoNode.textContent = "There are no sections.";
+			fragment.appendChild(this.thereAreNoNode);
 		}
 
 		return fragment;
@@ -91,7 +96,7 @@ export default class Manager {
 					let $div = this.$nav.querySelector("div.thereAreNo");
 
 					if ($div)
-						this.$nav.removeChild($div);
+						$div.parentElement.removeChild($div);
 
 					const $sectionToDelete = document.querySelector("section#createSection");
 					document.body.removeChild($sectionToDelete);
@@ -104,6 +109,7 @@ export default class Manager {
 				}
 			}
 			catch (error) {
+				console.log(error);
 				$message.textContent = error.message;
 				await delay(3500);
 				$message.textContent = '';
@@ -151,6 +157,93 @@ export default class Manager {
 			$message.textContent = error.message;
 			await delay(3500);
 			$message.textContent = '';
+		}
+	}
+	async confirmDeleteSection (evArg, delay) {
+		this.processing = true;
+		const $template = document.getElementById("@notifying"),
+			$i = $template.content.querySelector("i.section-name"),
+		$buttonForDelete = $template.content.querySelector("button#yeah");
+		$buttonForDelete.dataset.mainurl = evArg.target.parentElement.dataset.reference;
+
+		$i.textContent = evArg.target.parentElement.dataset.reference.replaceAll(/http\:\/{2}.*\//ig, "").replaceAll("-", " ");
+		
+		let node = document.importNode($template.content.querySelector("div#toConfirm"), true);
+		document.body.appendChild(node);
+		await delay(0);
+		let $toConfirm = document.getElementById("toConfirm");
+		$toConfirm.classList.add("down");
+	}
+	// here there are error
+	async viewNotification (htmlCode, delay, time) {
+		const $template = document.getElementById("@notifying"),
+			$div = $template.content.querySelector("div#notifying");
+			$div.innerHTML = htmlCode;
+
+		let node = document.importNode($template.content.querySelector("div#notifying"), true);
+		document.body.appendChild(node);
+		await delay(10);
+		let $notifying = document.getElementById("notifying");
+		$notifying.classList.add("visible");
+		await delay(time);
+		$notifying.classList.remove("visible");
+		await delay(400);
+		$notifying.parentElement.removeChild($notifying);
+	}
+	async cancelDeleteSection (delay) {
+		let $toConfirm = document.getElementById("toConfirm");
+		$toConfirm.classList.remove("down");
+		await delay(500);
+
+		document.body.removeChild($toConfirm);
+
+		this.processing = false;
+	}
+	async deleteSection (mainURL, delay) {
+		let options = {
+			method: "Delete",
+			headers: {
+				accept: "text/txt",
+				date: Date.now()
+			},
+			body: null
+		}
+		try {
+			const response = await fetch(mainURL, options);
+			/* What's status code?
+				the status code is 202 */
+			if (response.status == 202) {
+				this.liSelected.parentElement.removeChild(this.liSelected);
+
+				const $list = document.getElementsByTagName("li");
+
+				if ($list.length == 0) {
+					this.thereAreNoNode.textContent = "There are no sections.";
+					this.$nav.appendChild(this.thereAreNoNode);
+				}
+
+				let $toConfirm = document.getElementById("toConfirm");
+				$toConfirm.classList.remove("down");
+				await delay(500);
+
+				document.body.removeChild($toConfirm);
+
+				await this.viewNotification(
+					`Already deleted the <i class="actual-section">${await response.text()}</i> section`,
+					 delay,
+					 3000
+				);
+				this.processing = false;
+			}
+			else 
+				await this.viewNotification(
+					await response.text(),
+					delay,
+					3000
+				);
+		}
+		catch (error) {
+			await this.viewNotification(error.message, delay, 4000);
 		}
 	}
 }

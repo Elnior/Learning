@@ -1,5 +1,6 @@
 @import "./barStyle.css" all;
 @import "./sectStyles.css" all;
+@import "./notifying.css" all;
 
 body, html {
 	box-sizing: border-box;
@@ -12,6 +13,8 @@ body {
 	background-repeat: no-repeat;
 	background-size: 100vw 100vh;
 	background-attachment: fixed;
+	font-size: 24px;
+
 }
 
 header {
@@ -33,7 +36,7 @@ header button {
 	padding: 0px;
 	background-color: purple;
 	color: white;
-	font-size: 2.6em;
+	font-size: 42px;
 	cursor: pointer;
 	border-radius: 1em;
 	transition: 366ms all ease;
@@ -83,7 +86,7 @@ main nav ul li {
 	flex-flow: row wrap;
 	justify-content: space-between;
 	align-items: center;
-	algin-content: center;
+	align-content: center;
 	transform: scale(1);
 	transition: 388ms transform ease-in;
 }

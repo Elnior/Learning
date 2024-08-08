@@ -6,6 +6,7 @@ class HandlerSection extends Manager {
 	#processing = false;
 	#IsPresent = false;
 	#sectionActual = null;
+	liSelected = null;
 	get sectionActual () {
 		return this.#sectionActual;
 	}
@@ -47,7 +48,13 @@ class HandlerSection extends Manager {
 			document.body.removeChild($sectionToDelete);
 			this.#processing = false;
 		}
-		else if (evArg.target.matches("button.moreActions")) {
+		else if (evArg.target.matches("div#toConfirm button#yeah"))
+			this.deleteSection(evArg.target.dataset.mainurl, delay);
+
+		else if (evArg.target.matches("div#toConfirm button#no"))
+			this.cancelDeleteSection(delay);
+
+		else if (evArg.target.matches("button.moreActions") && !this.#processing) {
 			let list = document.getElementsByTagName("li");
 			
 			for (let li of list) {
@@ -80,17 +87,19 @@ class HandlerSection extends Manager {
 
 			let list = document.getElementsByTagName("li");
 			
-			for (let li of list)
-				li.classList.remove("selected");
 
 			let $menu = document.querySelector("div#ctx-menu");
+			this.liSelected = document.querySelector("li.selected");
 			let $button = document.createElement("button");
 			$button.className = "moreActions";
 			$button.textContent = "...";
-			
-			this.#sectionActual = evArg.target.parentElement.parentElement;
+
+			this.#sectionActual = this.liSelected;
 
 			$menu.parentElement.replaceChild($button, $menu);
+
+			for (let li of list)
+				li.classList.remove("selected");
 
 			if (evArg.target.matches("button#rename")) {
 				this.#processing = true;
@@ -108,6 +117,8 @@ class HandlerSection extends Manager {
 				$form.sender.value = "Change";
 				document.body.appendChild(imported);
 			}
+			else if (evArg.target.matches("button#del")) 
+				this.confirmDeleteSection(evArg, delay);
 		}
 	}
 	static async Main () {

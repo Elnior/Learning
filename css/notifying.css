@@ -1,0 +1,95 @@
+/* The styles for element confirm */
+div.confirm {
+	background-color: #131313;
+	position: fixed;
+	z-index: 5;
+	margin: 0px;
+	padding: 0px;
+	right: 0px;
+	top: 0px;
+	left: 0px;
+	bottom: 0px;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	grid-template-rows: repeat(3, 1fr);
+	grid-template-areas: 
+	"message message message"
+	"yesButton . noButton"
+	". . ."
+	;
+	column-gap: 0px;
+	row-gap: 0px;
+	justify-items: center;
+	align-items: center;
+	align-content: center;
+	justify-content: center;
+	transform: translateY(-100vh);
+	transition: 288ms transform ease;
+}
+div.confirm.down {
+	transform: translateY(0px);
+}
+div.confirm p {
+	background-color: black;
+	margin: 0px;
+	padding: 20px;
+	text-align: center;
+	grid-area: message;
+	align-self: start;
+	font: bolder 1.2em monospace;
+	color: white;
+}
+div.confirm i {
+	color: yellow;
+	font-style: normal;
+}
+div.confirm i.word-del {
+	color: red;
+}
+div.confirm button {
+	cursor: pointer;
+	opacity: 0.5;
+	transition: 450ms opacity ease;
+}
+div.confirm button:hover {
+	opacity: 1;
+}
+div.confirm button.y {
+	grid-area: yesButton;
+	font: bold 1.4em normal;
+	padding: 10px 25px 10px 25px;
+	align-self: start;
+	justify-self: end;
+	background-color: red;
+	color: white;
+}
+div.confirm button.n {
+	grid-area: noButton;
+	font: bold 1.4em normal;
+	padding: 10px 25px 10px 25px;
+	align-self: start;
+	justify-self: start;
+	background-color: yellow;
+	color: black;
+}
+/* The styles for element notification */
+div.notification {
+	background-color: purple;
+	color: cyan;
+	padding: 20px;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	text-align: center;
+	font: bolder 1.3em normal;
+	z-index: 6;
+	transform: translateX(100vw);
+	transition: 366ms transform ease;
+}
+div.notification.visible {
+	transform: translateX(0px);
+}
+div.notification i.actual-section {
+	color: yellow;
+}

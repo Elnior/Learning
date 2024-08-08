@@ -22,13 +22,13 @@
 
 		<template id="@generateSection">
 			<section id="createSection" class="creating">
-				<form method="post" id="creatingSection" action="/create/section">
+				<form method="post" autocomplete="off" id="creatingSection" action="/create/section">
 					
 					<label for="section">Seccion Name:</label>
 					
 					<div class="message"></div>
 					
-					<input type="text" placeholder="White here.." name="section" id="section" >
+					<input type="text" placeholder="Write here.." name="section" id="section" >
 
 					<div class="controls">
 						<input type="submit" name="sender" value="Send">
@@ -46,6 +46,16 @@
 			</div>
 		</template>
 		
+		<template id="@notifying">
+			<!-- First element -->
+			<div id="toConfirm" class="confirm">
+				<p>Are you sure to <i class="word-del">delete</i> the <i class="section-name">($)</i> section with the all progress?</p>
+				<button id="yeah" class="y">Yes</button>
+				<button id="no" class="n">No</button>
+			</div>
+			<!-- Last element -->
+			<div id="notifying" class="notification"></div>
+		</template>
 		<!-- Main script -->
 		<script type="module" src="toLearn.js"></script>
 	</body>
