@@ -56,6 +56,50 @@ function getSection (name) {
 	}
 }
 
+function getReferenceSection (ref) {
+	return new Promise ((resolve, reject)=> {
+		// Searching reference object
+		let allSection = fs.createReadStream(`./interactivity/sections.json`);
+		let searched = false;
+		
+		let stringForObject = "";
+		let isOpen = false;
+		let isClose = false;
+		let isRun = false;
+									
+		allSection.on("data", chunk=> {
+			for (let each of chunk.toString('utf-8')) {
+				// verifing
+				if (each == "{")
+					isOpen = true;
+				else if (each == "}")
+					isClose = true;
+				else {}
+
+				if (isOpen)
+					stringForObject += each;
+				else {}
+
+				if (isClose) {
+					// for two objects
+					let processed = JSON.parse(stringForObject);
+					if (processed.reference == ref.replace("/", "")) {
+						allSection.destroy();
+						searched = true;
+						resolve(processed);
+						break;
+					}
+					// reset values
+					isOpen = false;
+					isClose = false;
+					stringForObject = "";
+				}
+			}
+		})
+		.on("end", ()=> searched? null : resolve(new Error(`The are no ${ref} reference`)))
+		.on("error", reject);
+	});
+}
 async function dispatchSocket (obR, socketActual, transfering) {
 	switch (obR.method.toLowerCase()) {
 		case 'get' :
@@ -412,7 +456,7 @@ async function dispatchSocket (obR, socketActual, transfering) {
 					socketActual.write(`the name "${String.fromCharCode(...obR.body)}" is not acceptable, numbers and symbols is not acceptable; write again.`);
 				}
 			}
-			else if (obR.path == "/setFile" && transfering instanceof TransferManager) 
+			else if (await isAdyacent("./interactivity") && obR.path == "/setFile" && transfering instanceof TransferManager) 
 				await new Promise((resolve, reject)=> {
 					let [ doYouHaveDisposition ] = Object.keys(obR.headers).filter(el=> /content\-disposition/i.test(el));
 					let nameOfFile = obR.headers[doYouHaveDisposition]? obR.headers[doYouHaveDisposition] : `file${Date.now()}.byn`;
@@ -533,7 +577,7 @@ async function dispatchSocket (obR, socketActual, transfering) {
 							}
 						}
 					})
-					.on("error", reject)
+					.on("error", (error)=> console.log(error))
 					.on("end", ()=> {
 						if (!isRenowned) return beFromHere.end();
 						beFromHere.write("\r\n]");
@@ -708,6 +752,32 @@ async function dispatchSocket (obR, socketActual, transfering) {
 				});
 		break; 
 
+		case 'checkout' :
+			const posibleObject = await getReferenceSection(obR.path);
+			if (posibleObject instanceof Error) {
+				socketActual.write(
+					"HTTP/1.1 487 there are no reference\r\n" +
+					"content-type: text/txt\r\n" +
+					"connection: keep-alive\r\n" +
+					"Sever: NElniorS\r\n" +
+					"Date: " + new Date() + "\r\n" +
+					"\r\n"
+				);
+				socketActual.write("Error(487): There are no reference");
+			}
+			else {
+				socketActual.write(
+					"HTTP/1.1 290 there are no reference\r\n" +
+					"content-type: application/json\r\n" +
+					"connection: keep-alive\r\n" +
+					"Sever: NElniorS\r\n" +
+					"Date: " + new Date() + "\r\n" +
+					"\r\n"
+				);
+				socketActual.write( JSON.stringify(posibleObject) );
+			}
+		break;
+
 		default :
 			socketActual.write(
 				"HTTP/1.1 409 there are no method\r\n" +
@@ -819,6 +889,7 @@ async function handlerSockets (socket) {
 						}
 					} catch (error) {
 						console.log("Error (0x004): ", error);
+						socket.end();
 						resolve(true);
 					}
 				});

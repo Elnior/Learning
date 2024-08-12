@@ -1,7 +1,7 @@
 @import "./barStyle.css" all;
 @import "./sectStyles.css" all;
 @import "./notifying.css" all;
-
+@import "./inform.css" all;
 body, html {
 	box-sizing: border-box;
 	padding: 0px;

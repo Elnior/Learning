@@ -176,19 +176,22 @@ export default class Manager {
 	}
 	// here there are error
 	async viewNotification (htmlCode, delay, time) {
-		const $template = document.getElementById("@notifying"),
-			$div = $template.content.querySelector("div#notifying");
-			$div.innerHTML = htmlCode;
+		try {
+			const $template = document.getElementById("@notifying"),
+				$div = $template.content.querySelector("div#notifying");
+				$div.innerHTML = htmlCode;
 
-		let node = document.importNode($template.content.querySelector("div#notifying"), true);
-		document.body.appendChild(node);
-		await delay(10);
-		let $notifying = document.getElementById("notifying");
-		$notifying.classList.add("visible");
-		await delay(time);
-		$notifying.classList.remove("visible");
-		await delay(400);
-		$notifying.parentElement.removeChild($notifying);
+			let node = document.importNode($template.content.querySelector("div#notifying"), true);
+			document.body.appendChild(node);
+			await delay(10);
+			let $notifying = document.getElementById("notifying");
+			$notifying.classList.add("visible");
+			await delay(time);
+			$notifying.classList.remove("visible");
+			await delay(200);
+			$notifying.parentElement.removeChild($notifying);
+		}
+		catch {}
 	}
 	async cancelDeleteSection (delay) {
 		let $toConfirm = document.getElementById("toConfirm");
@@ -245,5 +248,40 @@ export default class Manager {
 		catch (error) {
 			await this.viewNotification(error.message, delay, 4000);
 		}
+	}
+	viewInformationThere ({ reference }, delay) {
+		this.processing = true;
+		let options = {
+			method: "checkout",
+			headers: {
+				accept: "application/json",
+				"accept-language": "en",
+				date: Date.now()
+			},
+			body: null
+		}
+		fetch(reference, options)
+		.then(async resp=> {
+			if (resp.status == 290) {
+				let sectionInformation = await resp.json();
+				let $p = this.infoToSide.querySelector("p");
+				let date = new Date(sectionInformation.birthTime),
+					ndx = date.toString().indexOf(":") - 3,
+					validDate  = date.toString().split("").filter((el, index)=> index < ndx).join("");
+					// writed short date
+				$p.innerHTML = `Creation Date: <i>${validDate}</i> <br>Name: <i>${sectionInformation.name}</i>`;
+				this.infoToSide.classList.remove("toSide");
+			}
+			else
+				this.viewNotification(await resp.text(), delay, 4000)
+				.then(()=> this.processing = false);
+		})
+		.catch(error => this.viewNotification(error.message, delay, 4000)
+				.then(()=> this.processing = false));
+	}
+	closeWindowsInformation (delay) {
+		this.infoToSide.classList.add("toSide");
+		delay(210)
+		.then(()=> this.processing = false);
 	}
 }

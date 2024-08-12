@@ -20,12 +20,13 @@ class HandlerSection extends Manager {
 		this.#processing = value;
 	}
 	// the main constructor
-	constructor (loader, $nav) {
+	constructor (loader, $nav, infoToSide) {
 		// call up contructor..
 		super(null);
 		// the Nodes of documents
 		this.loader = loader;
 		this.$nav = $nav;
+		this.infoToSide = infoToSide;
 		// the Nodes for documents
 		this.thereAreNoNode = document.createElement("div");
 		this.thereAreNoNode.className = "thereAreNo";
@@ -37,7 +38,9 @@ class HandlerSection extends Manager {
 			await this.renameSection(evArg, delay);
 	}
 	handlerEventClick (evArg) {
-		if (evArg.target.matches("button#set-new-section") && !this.#processing) {
+		if (evArg.target.matches("button#close-inform"))
+			this.closeWindowsInformation(delay);
+		else if (evArg.target.matches("button#set-new-section") && !this.#processing) {
 			this.#processing = true;
 			let $generateSection = document.getElementById("@generateSection");
 			let imported = document.importNode($generateSection.content, true);
@@ -117,12 +120,16 @@ class HandlerSection extends Manager {
 				$form.sender.value = "Change";
 				document.body.appendChild(imported);
 			}
+
 			else if (evArg.target.matches("button#del")) 
 				this.confirmDeleteSection(evArg, delay);
+
+			else if (evArg.target.matches("button#info")) 
+				this.viewInformationThere(evArg.target.parentElement.dataset, delay);
 		}
 	}
 	static async Main () {
-		const handling = new HandlerSection( document.getElementById("loader"), document.getElementById("all-sections") );
+		const handling = new HandlerSection( document.getElementById("loader"), document.getElementById("all-sections"), document.getElementById("info") );
 		await delay (2000);
 		await handling.loadSections();
 
