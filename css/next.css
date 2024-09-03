@@ -1,0 +1,316 @@
+@import "/barStyle.css";
+body,
+html, *,
+*::after, *::before {
+	padding: 0px;
+	margin: 0px;
+	box-sizing: border-box;
+}
+body {
+	background-color: black;
+}
+header {
+	color: white;
+	font: lighter italic 28px monospace;
+	text-align: left;
+	margin: 10px auto 0px auto;
+	width: 90vw;
+	padding: 0px;
+	background-color: transparent;
+}
+header::after {
+	position: absolute;
+	content: '';
+	border-radius: 20px;
+	top: 10px;
+	display: block;
+	width: 90vw;
+	height: 60px;
+	color: white;
+	background-image: linear-gradient(black, gray);
+	opacity: 0.5;
+	clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+}
+div.add-prayer, div.start-test {
+	border-radius: 40px;
+	z-index: 3;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: fixed;
+	top: auto;
+	bottom: 5px;
+	right: 5px;
+	left: auto;
+	background-color: blue;
+	width: 80px;
+	height: 80px;
+	cursor: pointer;
+	color: white;
+	box-shadow: 3px 3px 4px gray;
+	transform: rotate(0deg);
+	transition: 320ms all linear;
+}
+div.start-test {
+	background-color: black;
+	z-index: 4;
+	left: 5px;
+	right: auto;
+}
+div.start-test:hover {
+	background-color: purple;
+}
+div.add-prayer:hover {
+	background-color: black;
+}
+div.add-prayer:active, div.start-test:active {
+	box-shadow: 1px 1px 4px gray;
+}
+div.start-test button {
+	background-color: white;
+	width: 38.971143170299739104367542683882px;
+	height: 45px;
+	clip-path: polygon(0px 0px, 0px 45px, 38.971143170299739104367542683882px 22.5px, 0px 0px);
+	cursor: inherit;
+	transition: 300ms background-color ease;
+}
+div.start-test button:hover {
+	background-color: cyan;
+}
+div.start-test.disabled {
+	background-color: gray;
+	z-index: 1;
+	box-shadow: 1px 1px 4px gray;
+	cursor: default;
+}
+div.start-test.disabled button {
+	background-color: #444;					
+}
+div.add-prayer.process { 
+	background-color: red;
+	transform: rotate(45deg);
+	color: white;
+
+}
+div.add-prayer button
+{
+	font: bolder 48px normal;
+	border-radius: 24px;
+	background-color: inherit;
+	border: none;
+	outline: none;
+	color: inherit;
+	cursor: pointer;
+}
+div.simpleLoader {
+	text-align: center;
+	color: white;
+	font: bolder 48px normal;
+	background-color: transparent;
+}
+
+div.thereAreNo
+{
+	text-align: center;
+	color: gray;
+	font: bolder 48px normal;
+	background-color: transparent;
+}
+article {
+	width: 80vw;
+	background-color: #ffff0017;
+	margin: 10px auto 10px auto;
+	padding: 0px;
+	border-radius: 1em;
+}
+article.missing	{
+	background-color: #ff000030;
+}
+article.aproved {
+	background-color: #00800040;
+}
+
+article div.controls {
+	background-color: black;
+	border: none;
+	border-top: 2px solid blue;
+	display: flex;
+	padding: 2px;
+	justify-content: space-between;
+	align-items: flex-start;
+}
+
+article p {
+	padding: 10px;
+	font: bold 36px monospace;
+}
+article p.en {
+	color: white;
+}
+article p.es {
+	color: cyan;
+}
+article div.controls svg {
+	cursor: pointer;
+	transform: scale(0.8);
+	transition: 300ms transform ease;
+}
+article div.controls svg:hover {
+	transform: scale(0.9);
+}
+article div.controls svg:active {
+	transform: scale(1);
+}
+form.generating, form.modifying {
+	background-color: #1a1a57;
+	width: 100%;
+	display: flex;
+	transform: translateX(100vw);
+	flex-flow: row;
+	justify-content: center;
+	align-items: center;
+	padding: 0px;
+	margin: 0px;
+	z-index: 2;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	transition: 280ms transform ease;
+}
+form.modifying {
+	background-color: #18051c;
+}
+form.generating.visible,
+form.modifying.visible {
+	transform: translateX(0px);
+}
+form.modifying fieldset,
+form.generating fieldset {
+	border: none;
+	padding: 0px;
+	background-color: transparent ;
+}
+form.generating fieldset legend,
+form.modifying fieldset legend {
+	text-align: center;
+	font: bolder oblique 45px monospace;
+	text-decoration: solid red underline;
+	color: white;
+}
+form.generating fieldset label,
+form.modifying fieldset label {
+	padding: 10px 3px 0px 3px;
+	font: bold 35px "Courier new", serif;
+	color: white;
+	text-align: left;
+	display: block;
+	width: 100%;
+}
+form.generating fieldset div.message,
+form.modifying fieldset div.message {
+	background-color: red;
+	text-align: left;
+	white-space: normal;
+	word-wrap: wrap;
+	word-break: break-word;	
+	font: bold 33px normal;
+	padding: 0px;
+	margin: 0px;
+	color: white;
+}
+form.generating fieldset input,
+form.modifying fieldset input {
+	background-color: #444;
+	text-indent: 16px;
+	border: none;
+	outline: none;
+	color: white;
+	border-radius: 1em;
+	text-align: left;
+	white-space: normal;
+	font: bold 33px monospace;
+	padding: 0px;
+	margin: 0px;
+	transition: 240ms background-color ease;
+}
+form.generating fieldset input::placeholder,
+form.modifying fieldset input::placeholder {
+	color: yellow;
+}
+form.generating fieldset input:focus,
+form.modifying fieldset input:focus {
+	background-color: black;
+}
+form.generating fieldset button,
+form.modifying fieldset button {
+	padding: 10px;
+	background-color: black;
+	font: bold 35px "Courier new", serif;
+	color: white;
+	text-align: left;
+	display: block;
+	margin: 10px auto;
+	cursor: pointer;
+	transition: 100ms background-color linear;
+}
+form.generating fieldset button:hover,
+form.modifying fieldset button:hover {
+	background-color: coral;
+}
+form.generating fieldset button:active,
+form.modifying fieldset button:active {
+	background-color: red;
+}
+section.confirm {
+	background-color: purple;
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-rows: repeat(2, 1fr);
+	column-gap: 0px;
+	row-gap: 0px;
+	grid-template-areas: "qu qu" "ys no";
+	justify-items: center;
+	align-items: end;
+	justify-content: center;
+	align-content: center;
+	width: 300px;
+	height: 120px;
+	padding: 0px;
+	position: fixed;
+	left: calc(50vw - 150px);
+	top: calc(50vh - 60px);
+	border-radius: 1em;
+	opacity: 0;
+	transition: 312ms opacity ease;
+}
+section.confirm.show {
+	opacity: 1;
+}
+section.confirm p {
+	grid-area: qu;
+	font: bolder 36px "Courier new", monospace;
+	text-align: center;
+	color: yellow;
+}
+section.confirm button#yes {
+	grid-area: ys;
+	background-color: red;
+	color: white;
+}
+section.confirm button#yes:hover {
+	background-color: #ff27278f;
+	color: white;
+}
+section.confirm button#no {
+	grid-area: no;
+	background-color: black;
+	color: white;
+}
+section.confirm button {
+	font: bolder 36px "Courier new", monospace;
+	padding: 2px;
+	cursor: pointer;
+	transition: 300ms background-color ease;
+}

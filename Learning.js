@@ -100,6 +100,7 @@ function getReferenceSection (ref) {
 		.on("error", reject);
 	});
 }
+
 async function dispatchSocket (obR, socketActual, transfering) {
 	switch (obR.method.toLowerCase()) {
 		case 'get' :
@@ -257,19 +258,58 @@ async function dispatchSocket (obR, socketActual, transfering) {
 				});
 
 			else {
-				let forSend = `<h1 style="color: red; text-align:center">Not found direction: ${obR.path}</h1>`;
+				try {
+					let posibleReference = await getReferenceSection(obR.path);
+					// if is error, go to catch block..
+					if (posibleReference instanceof Error)
+						throw null;
+					await new Promise(async (resolve, reject)=> {
+						if (!(await isAdyacent("./forServer/nextInterface.html"))) {
+							socketActual.write(
+								"HTTP/1.1 504 Falied\r\n" +
+								"content-type: text/txt\r\n" +
+								"connection: close\r\n" +
+								"server: NElniorS\r\n" +
+								"\r\n"
+							);
+							socketActual.write("there are internal errors..");
+							return resolve();
+						}
+						const nextInterfaceStream = fs.createReadStream("./forServer/nextInterface.html");
+						const stat = await fs.promises.stat(nextInterfaceStream.path);
 
-				socketActual.write(
-					"HTTP/1.1 404 Not Found\r\n" +
-					"content-type: text/html; charset=utf-8\r\n" +
-					`content-length: ${forSend.length}\r\n` +
-					"connection: close\r\n" +
-					"Server: NElniorS\r\n" +
-					`Date: ${new Date()}\r\n` +
-					"\r\n"
-				);
-				socketActual.write(forSend);
+						let isRun = false;
+						const callEnd = ()=> !isRun? resolve(isRun = true) : null;
+						socketActual.write(
+							"HTTP/1.1 200 Ready\r\n" +
+							"content-type: text/html; charset=utf-8\r\n" +
+							`content-length: ${stat.size}\r\n` +
+							"connection: keep-alive\r\n" +
+							"server: NElniorS\r\n" +
+							"\r\n"
+						);
+
+						nextInterfaceStream
+						.on("data", chunk=> socketActual.write(chunk))
+						.on("end", callEnd)
+						.on("close", callEnd);
+					});
+				}
+				catch (err) {
+					let forSend = `<h1 style="color: red; text-align:center">Not found direction: ${obR.path}</h1>`;
+					socketActual.write(
+						"HTTP/1.1 404 Not Found\r\n" +
+						"content-type: text/html; charset=utf-8\r\n" +
+						`content-length: ${forSend.length}\r\n` +
+						"connection: close\r\n" +
+						"Server: NElniorS\r\n" +
+						`Date: ${new Date()}\r\n` +
+						"\r\n"
+					);
+					socketActual.write(forSend);
+				}
 			}
+
 		break;
 
 		case 'post' :
@@ -767,7 +807,7 @@ async function dispatchSocket (obR, socketActual, transfering) {
 			}
 			else {
 				socketActual.write(
-					"HTTP/1.1 290 there are no reference\r\n" +
+					"HTTP/1.1 290 there are reference\r\n" +
 					"content-type: application/json\r\n" +
 					"connection: keep-alive\r\n" +
 					"Sever: NElniorS\r\n" +
