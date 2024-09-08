@@ -188,6 +188,8 @@ form.modifying.visible {
 }
 form.modifying fieldset,
 form.generating fieldset {
+	width: 100%;
+	max-width: 400px;
 	border: none;
 	padding: 0px;
 	background-color: transparent ;
@@ -211,7 +213,7 @@ form.modifying fieldset label {
 form.generating fieldset div.message,
 form.modifying fieldset div.message {
 	background-color: red;
-	text-align: left;
+	text-align: center;
 	white-space: normal;
 	word-wrap: wrap;
 	word-break: break-word;	
@@ -222,6 +224,9 @@ form.modifying fieldset div.message {
 }
 form.generating fieldset input,
 form.modifying fieldset input {
+	display: block;
+	width: 100%;
+	min-width: 200px;
 	background-color: #444;
 	text-indent: 16px;
 	border: none;
@@ -282,11 +287,15 @@ section.confirm {
 	left: calc(50vw - 150px);
 	top: calc(50vh - 60px);
 	border-radius: 1em;
+	transform: scale(1);
 	opacity: 0;
-	transition: 312ms opacity ease;
+	transition: 312ms opacity ease, 130ms transform linear;
 }
 section.confirm.show {
 	opacity: 1;
+}
+section.confirm.show.big {
+	transform: scale(1.6);
 }
 section.confirm p {
 	grid-area: qu;
@@ -313,4 +322,18 @@ section.confirm button {
 	padding: 2px;
 	cursor: pointer;
 	transition: 300ms background-color ease;
+}
+div.home {
+	background-color: transparent;
+	text-align: center;
+}
+div.home a {
+	color: green;
+	font: bolder 34px normal;
+}
+div.home a:hover {
+	color: cyan;
+}
+div.home a:active {
+	color: red;
 }

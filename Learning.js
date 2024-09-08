@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import net from 'node:net';
 import anully from 'anully';
 import condition from './forServer/condition.js';
-import { setTimeout as delay } from 'node:timers/promises';
 
 class TransferManager {
 	static activeTransfer = true;
@@ -16,9 +15,7 @@ class TransferManager {
 				this.byteLengthInserted += actualBuffer.byteLength;
 				this.writable.write(actualBuffer);
 			}
-			catch (error) {
-				console.log("Error (0x003): " + error.message);
-			}
+			catch (error) {}
 		}
 		else {}
 		return true;
@@ -225,6 +222,39 @@ async function dispatchSocket (obR, socketActual, transfering) {
 					.on("close", callEnd);
 				});
 
+			else if (await isAdyacent(`./interactivity${obR.path}`))
+				await new Promise(async (resolve, reject)=> {
+					const dataForLearn = fs.createReadStream(`./interactivity${obR.path}`);
+					const stat = await fs.promises.stat(dataForLearn.path);
+
+					let isRun = false;
+					const callEnd = ()=> !isRun? resolve(isRun = true) : null;
+					socketActual.write(
+						"HTTP/1.1 288 Great\r\n" +
+						"content-type: application/json\r\n" +
+						`content-length: ${stat.size}\r\n` +
+						"connection: close\r\n" +
+						"server: NElniorS\r\n" +
+						"\r\n"
+					);
+
+					dataForLearn
+					.on("data", chunk=> socketActual.write(chunk))
+					.on("error", error=> {
+						socketActual.write(
+							"HTTP/1.1 504 Falied\r\n" +
+							"content-type: text/txt\r\n" +
+							"connection: close\r\n" +
+							"server: NElniorS\r\n" +
+							"\r\n"
+						);
+						socketActual.write("there are internal errors..");
+						callEnd();
+					})
+					.on("end", callEnd)
+					.on("close", callEnd);
+				});
+
 			else if (obR.path == "/learn.png") 
 				await new Promise(async (resolve, reject)=> {
 					if (!(await isAdyacent("./learn.ico"))) {
@@ -281,7 +311,7 @@ async function dispatchSocket (obR, socketActual, transfering) {
 						let isRun = false;
 						const callEnd = ()=> !isRun? resolve(isRun = true) : null;
 						socketActual.write(
-							"HTTP/1.1 200 Ready\r\n" +
+							"HTTP/1.1 200 Well\r\n" +
 							"content-type: text/html; charset=utf-8\r\n" +
 							`content-length: ${stat.size}\r\n` +
 							"connection: keep-alive\r\n" +
@@ -309,7 +339,6 @@ async function dispatchSocket (obR, socketActual, transfering) {
 					socketActual.write(forSend);
 				}
 			}
-
 		break;
 
 		case 'post' :
@@ -525,6 +554,125 @@ async function dispatchSocket (obR, socketActual, transfering) {
 
 					transfering.writable.write( Buffer.from(obR.body) );
 				});
+			else if (!(await getReferenceSection(obR.path) instanceof Error)) {
+				if (await isAdyacent(`./interactivity${obR.path}.json`)) {
+					// I'm set new prayer element
+					let dataStream = fs.createReadStream(`./interactivity${obR.path}.json`);
+					const stat = await fs.promises.stat(dataStream.path);
+					let dataB = Buffer.from(obR.body, "utf-8");
+
+					let value = JSON.parse(dataB.toString("UTF-8"));
+					value.state = null;
+					
+					let lastObject = null;
+					let processedB = null;
+					let binaryData = null;
+
+					let beFromHere = fs.createWriteStream("./fromHere.json");
+					beFromHere.write("[\r\n");
+					let stringForObject = "";
+
+					let isOpen = false;
+					let isClose = false;
+					await new Promise ((resolve, reject)=> {
+						let isRun = false;
+						const callEnd = ()=> !isRun? resolve(isRun = true) : null;
+
+						dataStream.on("data", chunk=> {
+							for (let each of chunk.toString('utf-8')) {
+								// verifing
+								if (each == "{")
+									isOpen = true;
+								else if (each == "}")
+									isClose = true;
+								else {}
+
+								if (isOpen)
+									stringForObject += each;
+								else {}
+
+								if (isClose) {
+									lastObject = JSON.parse(stringForObject);
+									beFromHere.write(stringForObject + ",\r\n");
+									// reset values
+									isOpen = false;
+									isClose = false;
+									stringForObject = "";
+								}
+							}
+						})
+						.on("error", reject)
+						.on("end", ()=> {
+							if (lastObject) 
+								value.id = `0x${(Number(lastObject.id) + 1).toString(16)}`;
+							else 
+								value.id = "0x1";
+							processedB = JSON.stringify(value);
+							binaryData = Buffer.from(processedB + "\r\n", "utf-8");
+							beFromHere.write(binaryData);
+							beFromHere.write("]");
+							beFromHere.end();
+
+						})
+						.on("close", ()=> {
+							beFromHere = fs.createReadStream(beFromHere.path);
+							let WritableStreamB = fs.createWriteStream(dataStream.path);
+
+							WritableStreamB
+							.on("close", callEnd)
+							.on("error", reject);
+
+							beFromHere.pipe(WritableStreamB);
+							
+							socketActual.write(
+								"HTTP/1.1 256 Inserted successful\r\n" +
+								"content-type: application/json\r\n" +
+								"connection: close\r\n" +
+								`content-length: ${binaryData.byteLength}\r\n` +
+								"Server: NElniorS\r\n" +
+								`Date: ${new Date()}\r\n` +
+								"\r\n"
+							);
+							socketActual.write(binaryData);
+						});
+					});
+				}
+				else {
+					// I'm create the prayers file
+					let dataStream = fs.createWriteStream(`./interactivity${obR.path}.json`);
+					let dataB = Buffer.from(obR.body, "utf-8");
+					await new Promise ((resolve, reject)=> {
+						// the first data object
+						let obj = JSON.parse(dataB.toString("utf-8"));
+						obj.id = "0x1";
+						obj.state = null;
+						let processedB = JSON.stringify(obj);
+						let binaryData = Buffer.from(processedB + "\r\n", "utf-8");
+
+						dataStream.on("close", ()=> {
+							socketActual.write(
+								"HTTP/1.1 256 Inserted successful\r\n" +
+								"content-type: application/json\r\n" +
+								"connection: close\r\n" +
+								`content-length: ${binaryData.byteLength}\r\n` +
+								"Server: NElniorS\r\n" +
+								`Date: ${new Date()}\r\n` +
+								"\r\n"
+							);
+							socketActual.write(binaryData);
+							resolve();
+						});
+
+						dataStream.write("[\r\n");
+
+						dataStream.write(binaryData);
+
+						dataStream.write("]");
+
+						dataStream.end();
+					});
+				}
+			}
 			else {
 				socketActual.write(
 					"HTTP/1.1 400 Bad Request\r\n" +
@@ -675,12 +823,125 @@ async function dispatchSocket (obR, socketActual, transfering) {
 		case 'delete' :
 			let reference = obR.path.replace("/", "");
 			let dir = "./interactivity";
+			if (await isAdyacent(dir + obR.path)) 
+				await new Promise ((resolve, reject)=> {
+					// I'm deleting prayer
+					let orationsStream = fs.createReadStream(`${dir}${obR.path}`);
+					reference = JSON.parse(Buffer.from(obR.body, "utf-8").toString("utf-8"));
+					let isRemoved = false;
 
-			await new Promise ((resolve, reject)=> {
+					let beFromHere = fs.createWriteStream("./fromHere.json");
+					beFromHere.write("[\r\n");
+
+					let twoPrayers = [];
+					let isExec = false;
+
+					let stringForObject = "";
+
+					let isOpen = false;
+					let isClose = false;
+					let isRun = false;
+									
+					const callEnd = ()=> !isRun? resolve(isRun = true) : null;
+
+					orationsStream.on("data", chunk=> {
+						for (let each of chunk.toString('utf-8')) {
+							// verifing
+							if (each == "{")
+								isOpen = true;
+							else if (each == "}")
+								isClose = true;
+							else {}
+
+							if (isOpen)
+								stringForObject += each;
+							else {}
+
+							if (isClose) {
+								// for two objects
+								let processed = JSON.parse(stringForObject);
+								twoPrayers.push(processed);
+								if (twoPrayers.length == 2) {
+									let [first, second] = twoPrayers;
+
+									if(first.id == reference.identification) {
+										isRemoved = true;
+										beFromHere.write((isExec? ",\r\n":"") + JSON.stringify(second));
+										isExec = true;
+									}
+									else if (second.id == reference.identification) {
+										isRemoved = true;
+										beFromHere.write((isExec? ",\r\n":"") + JSON.stringify(first));
+										isExec = true;
+									}
+									else {
+										beFromHere.write((isExec? ",\r\n":"") + JSON.stringify(first) + ",\r\n");
+										beFromHere.write(JSON.stringify(second));
+										isExec = true;
+									}
+									twoPrayers = [];
+								}
+								else {}
+								// reset values
+								isOpen = false;
+								isClose = false;
+								stringForObject = "";
+							}
+						}
+					})
+					.on("error", reject)
+					.on("end", ()=> {
+						let [ missing ] = twoPrayers;
+
+						if (missing !== undefined) 
+							missing.id == reference.identification? isRemoved = true : beFromHere.write(",\r\n" + JSON.stringify(missing));
+						else {}
+
+						if (!isRemoved) return beFromHere.end();
+
+						beFromHere.write("\r\n]");
+						beFromHere.end();
+					})
+					.on("close", ()=> {
+						if (!isRemoved) {
+							socketActual.write(
+								"HTTP/1.1 264 Falied to delete\r\n" +
+								"content-type: text/txt\r\n" +
+								"connection: close\r\n" +
+								"Server: NElniorS\r\n" +
+								`Date: ${new Date()}\r\n` +
+								"\r\n"
+							);
+							socketActual.write(`${reference.identification} id does not exist`);
+							callEnd();
+						}
+						else {
+							beFromHere = fs.createReadStream(beFromHere.path);
+							let sectionsWritableStream = fs.createWriteStream(orationsStream.path);
+
+							sectionsWritableStream
+							.on("close", callEnd)
+							.on("error", reject);
+
+							beFromHere.pipe(sectionsWritableStream);
+
+							socketActual.write(
+								"HTTP/1.1 242 deleted\r\n" +
+								"content-type: text/txt\r\n" +
+								"connection: close\r\n" +
+								"Server: NElniorS\r\n" +
+								`Date: ${new Date()}\r\n` +
+								"\r\n"
+							);
+							socketActual.write("done");
+						}
+					});
+				});
+			else 
+				await new Promise ((resolve, reject)=> {
 					// I'm deleting section
 					let sectionsReadableStream = fs.createReadStream(`${dir}/sections.json`);
 					let isRemoved = false;
-					let sure = true;
 
 					let beFromHere = fs.createWriteStream("./fromHere.json");
 					beFromHere.write("[\r\n");
