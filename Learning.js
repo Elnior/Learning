@@ -62,7 +62,6 @@ function getReferenceSection (ref) {
 		let stringForObject = "";
 		let isOpen = false;
 		let isClose = false;
-		let isRun = false;
 									
 		allSection.on("data", chunk=> {
 			for (let each of chunk.toString('utf-8')) {
@@ -351,7 +350,6 @@ async function dispatchSocket (obR, socketActual, transfering) {
 							if (await isAdyacent(`${dir}/sections.json`)) {
 								// I'm set new section
 								let sectionsReadableStream = fs.createReadStream(`${dir}/sections.json`);
-								const stat = await fs.promises.stat(sectionsReadableStream.path);
 
 								let value = String.fromCharCode(...obR.body),
 									isEqualToBeforeName = false;
@@ -754,7 +752,8 @@ async function dispatchSocket (obR, socketActual, transfering) {
 								else if (forEvaluate.name == before) {
 									isRenowned = true;
 									forEvaluate.name = after;
-									forEvaluate.reference = after.replaceAll(" ", "-");
+									before = forEvaluate.reference; // old reference
+									after = forEvaluate.reference = after.replaceAll(" ", "-");
 								}
 
 								beFromHere.write(JSON.stringify(forEvaluate));
@@ -772,41 +771,134 @@ async function dispatchSocket (obR, socketActual, transfering) {
 						beFromHere.end();
 					})
 					.on("close", ()=> {
-							if (!isRenowned) {
-								socketActual.write(
-									"HTTP/1.1 231 No previous\r\n" +
-									"content-type: text/txt\r\n" +
-									"connection: close\r\n" +
-									"Server: NElniorS\r\n" +
-									`Date: ${new Date()}\r\n` +
-									"\r\n"
-								);
-								socketActual.write("No previous name for name change or already exists in the collection.");
+						if (!isRenowned) {
+							socketActual.write(
+								"HTTP/1.1 231 No previous\r\n" +
+								"content-type: text/txt\r\n" +
+								"connection: close\r\n" +
+								"Server: NElniorS\r\n" +
+								`Date: ${new Date()}\r\n` +
+								"\r\n"
+							);
+							socketActual.write("No previous name for name change or already exists in the collection.");
+							callEnd();
+						}
+						else {
+							beFromHere = fs.createReadStream(beFromHere.path);
+							let sectionsWritableStream = fs.createWriteStream(sectionsReadableStream.path);
+
+							sectionsWritableStream
+							.on("close", async ()=> {
+								if (await isAdyacent(`./interactivity/${before}.json`))
+									await fs.promises.rename(`./interactivity/${before}.json`, `./interactivity/${after}.json`)
 								callEnd();
-							}
-							else {
-								beFromHere = fs.createReadStream(beFromHere.path);
-								let sectionsWritableStream = fs.createWriteStream(sectionsReadableStream.path);
+							})
+							.on("error", reject);
 
-								sectionsWritableStream
-								.on("close", callEnd)
-								.on("error", reject);
+							beFromHere.pipe(sectionsWritableStream);
 
-								beFromHere.pipe(sectionsWritableStream);
-
-										socketActual.write(
-											"HTTP/1.1 210 changed\r\n" +
-											"content-type: text/txt\r\n" +
-											"connection: close\r\n" +
-											"Server: NElniorS\r\n" +
-											`Date: ${new Date()}\r\n` +
-											"\r\n"
-										);
-										socketActual.write("changed successfully!");
-									}
-								});
+							socketActual.write(
+								"HTTP/1.1 210 changed\r\n" +
+								"content-type: text/txt\r\n" +
+								"connection: close\r\n" +
+								"Server: NElniorS\r\n" +
+								`Date: ${new Date()}\r\n` +
+								"\r\n"
+							);
+							socketActual.write("changed successfully!");
+						}
+					});
 				});
 			}
+			else if (await isAdyacent(`./interactivity${obR.path}.json`)) 
+				await new Promise ((resolve, reject)=> {
+					// I'm modifying prayers
+					let dataStream = fs.createReadStream(`./interactivity${obR.path}.json`);
+					let isRenowned = false;
+					let modified = JSON.parse(Buffer.from(obR.body, "utf-8").toString("utf-8"));
+
+					let beFromHere = fs.createWriteStream("./fromHere.json");
+					beFromHere.write("[\r\n");
+					let stringForObject = "";
+
+					let isOpen = false;
+					let isClose = false;
+					let isRun = false;
+					const callEnd = ()=> !isRun? resolve(isRun = true) : null;
+
+					dataStream.on("data", chunk=> {
+						for (let each of chunk.toString('utf-8')) {
+							// verifing
+							if (each == "{")
+								isOpen = true;
+							else if (each == "}")
+								isClose = true;
+							else {}
+
+							if (isOpen)
+								stringForObject += each;
+							else if (each == ",")
+								beFromHere.write(each + "\r\n");
+							else {}
+								if (isClose) {
+								// for each object
+								let forEvaluate = JSON.parse(stringForObject);
+
+								if (forEvaluate.id == modified.ID) {
+									isRenowned = true;
+									forEvaluate.state = null;
+									forEvaluate.english = modified.english;
+									forEvaluate.spanish = modified.spanish;
+								}
+
+								beFromHere.write(JSON.stringify(forEvaluate));
+								// reset values
+								isOpen = false;
+								isClose = false;
+								stringForObject = "";
+							}
+						}
+					})
+					.on("error", (error)=> console.log(error))
+					.on("end", ()=> {
+						if (!isRenowned) return beFromHere.end();
+						beFromHere.write("\r\n]");
+						beFromHere.end();
+					})
+					.on("close", ()=> {
+						if (!isRenowned) {
+							socketActual.write(
+								"HTTP/1.1 291 does not exist\r\n" +
+								"content-type: text/txt\r\n" +
+								"connection: close\r\n" +
+								"Server: NElniorS\r\n" +
+								`Date: ${new Date()}\r\n` +
+								"\r\n"
+							);
+							socketActual.write(`The ${modified.ID} id does not exist`);
+							callEnd();
+						}
+						else {
+							beFromHere = fs.createReadStream(beFromHere.path);
+							let sectionsWritableStream = fs.createWriteStream(dataStream.path);
+
+							sectionsWritableStream
+							.on("close", callEnd)
+							.on("error", reject);
+							beFromHere.pipe(sectionsWritableStream);
+
+							socketActual.write(
+								"HTTP/1.1 272 edited\r\n" +
+								"content-type: text/txt\r\n" +
+								"connection: close\r\n" +
+								"Server: NElniorS\r\n" +
+								`Date: ${new Date()}\r\n` +
+								"\r\n"
+							);
+							socketActual.write("changed successfully!");
+						}
+					});
+				});
 			else {
 				socketActual.write(
 					"HTTP/1.1 470 bad put\r\n" +
@@ -1034,7 +1126,12 @@ async function dispatchSocket (obR, socketActual, transfering) {
 							let sectionsWritableStream = fs.createWriteStream(sectionsReadableStream.path);
 
 							sectionsWritableStream
-							.on("close", callEnd)
+							.on("close", async ()=> {
+								let completePath = `${dir}/${reference}.json`;
+								if (await isAdyacent(completePath)) 
+									await fs.promises.rm(completePath);
+								callEnd();
+							})
 							.on("error", reject);
 
 							beFromHere.pipe(sectionsWritableStream);

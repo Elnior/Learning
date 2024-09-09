@@ -9,6 +9,11 @@ export default class OrationEditor {
     constructor (confirmTemplate) {
         this.confirmTemplate = confirmTemplate;
     }
+    static modify ({english, spanish, ID}) {
+        const $actualArticle = document.getElementById(ID);
+        $actualArticle.querySelector("p.en").textContent = english;
+        $actualArticle.querySelector("p.es").textContent = spanish;
+    }
     async deletePrayers (delay) {
         // more codes..
         let body = JSON.stringify({ identification: this.identification });
@@ -49,6 +54,27 @@ export default class OrationEditor {
             await delay(10);
             qtnReference.classList.remove("show");
         }
+    }
+    async viewEditor (delay) {
+        const { content } = this.formTemplate;
+        let $article = document.getElementById(this.identification),
+        $p1 = $article.querySelector("p.en"),
+        $p2 = $article.querySelector("p.es");
+
+        let $form = content.querySelector("form");
+        $form.id = "modifying";
+        $form.className = "modifying";
+        let $legend = content.querySelector("legend");
+        $legend.textContent = "Edit words";
+        content.querySelector("input#en").value = $p1.textContent;
+        content.querySelector("input#es").value = $p2.textContent;
+
+        let node = document.importNode(content, true);
+        document.body.appendChild(node);
+        await delay(10);
+        $form = document.getElementById($form.id);
+        $form.classList.add("visible");
+        this.prayerSetter.classList.add("process");
     }
     bigEffect () {
         let qtnReference = document.body.querySelector("section#confirm-deletion");

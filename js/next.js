@@ -8,6 +8,7 @@ class NextInterface extends OrationEditor {
 	static verbose = document.createElement("div");
 	#workingLv1 = false;
 	#workingLv2 = false;
+	#workingMaxLevel = true;
 	constructor (prayerSetter, formTemplate, confirmT, startTestButton) {
 		super(confirmT);
 		this.prayerSetter = prayerSetter;
@@ -61,7 +62,7 @@ class NextInterface extends OrationEditor {
 		let node = document.importNode(content, true);
 		document.body.appendChild(node);
 	}
-	async addPrayer (generated) {
+	async setPrayer (generated, method) {
 		let $messager1 = generated["en-data"].previousElementSibling;
 		let { value } = generated["en-data"];
 
@@ -72,11 +73,12 @@ class NextInterface extends OrationEditor {
 			if (NextInterface.CONDITION.test(otherValue)) {
 				let dataForSend = {
 					spanish: otherValue,
-					english: value
+					english: value,
+					ID: this.identification
 				},
 				body = JSON.stringify(dataForSend),
 				opt = {
-					method: "post",
+					method,
 					headers: {
 						accept: "application/json",
 						"accept-language": "en",
@@ -89,7 +91,13 @@ class NextInterface extends OrationEditor {
 				let response = await fetch(window.location.href, opt);
 				if (response.status == 256) {
 					NextInterface.setNext(await response.json());
-					this.closePrayersInterface();
+					this.closeForm();
+					this.startTestBox.classList.remove("disabled");
+				}
+				else if (response.status == 272) {
+					OrationEditor.modify(dataForSend);
+					this.#workingMaxLevel = true;
+					this.closeForm("modifying");
 					this.startTestBox.classList.remove("disabled");
 				}
 				else 
@@ -109,6 +117,8 @@ class NextInterface extends OrationEditor {
 		$form.className = "generating";
 
 		content.querySelector("legend").textContent = "Generate words";
+		content.querySelector("input#en").value = "";
+        content.querySelector("input#es").value = "";
 
 		let imported = document.importNode(content, true);
 		
@@ -119,8 +129,8 @@ class NextInterface extends OrationEditor {
 		$form.classList.add("visible");
 		this.prayerSetter.classList.add("process");
 	}
-	closePrayersInterface () {
-		let $form = document.getElementById("generating");
+	closeForm (id = "generating") {
+		let $form = document.getElementById(id);
 		$form.ontransitionend = ()=> {
 			$form.ontransitionend = null;
 			$form.parentElement.removeChild($form);
@@ -131,34 +141,51 @@ class NextInterface extends OrationEditor {
 	}
 	handlerClickEvents (evArg) {
 		let selected = null;
-		if ((selected = evArg.target.closest("div.controls svg.del-prayer")) && !this.#workingLv2) {
-			this.#workingLv2 = true;
-			this.identification = selected.parentElement.parentElement.id;
-			this.showQuestion(delay);
-		}
-		else if (evArg.target.matches("section#confirm-deletion button#no")) {
-			this.#workingLv2 = false;
-			this.identification = null;
-			this.hideQuestion(delay);
-		}
-		else if (evArg.target.matches("section#confirm-deletion button#yes")) {
-			this.#workingLv2 = false;
-			this.deletePrayers(delay);
-		}
-		else if (this.#workingLv2) 
-			this.bigEffect();
+		if (this.#workingMaxLevel) {
+			if ((selected = evArg.target.closest("div.controls svg.del-prayer")) && !this.#workingLv2) {
+				this.#workingLv2 = true;
+				this.identification = selected.parentElement.parentElement.id;
+				this.showQuestion(delay);
+			}
+			else if (evArg.target.matches("section#confirm-deletion button#no")) {
+				this.#workingLv2 = false;
+				this.identification = null;
+				this.hideQuestion(delay);
+			}
+			else if (evArg.target.matches("section#confirm-deletion button#yes")) {
+				this.#workingLv2 = false;
+				this.deletePrayers(delay);
+			}
+			else if (this.#workingLv2) 
+				this.bigEffect();
 
-		else if (evArg.target.closest("div.add-prayer") && !this.#workingLv1) {
-			this.viewPrayersInterface();
-			this.#workingLv1 = true;
+			else if (evArg.target.closest("div.add-prayer") && !this.#workingLv1) {
+				this.viewPrayersInterface();
+				this.#workingLv1 = true;
+			}
+			else if (evArg.target.closest("div.add-prayer") && this.#workingLv1)
+				this.closeForm();
+			else if ((selected = evArg.target.closest("div.controls svg.edit-prayer")) && !this.#workingLv2) {
+				this.identification = selected.parentElement.parentElement.id;
+				this.#workingMaxLevel = false;
+				this.viewEditor(delay);
+			}
 		}
-		else if (evArg.target.closest("div.add-prayer") && this.#workingLv1)
-			this.closePrayersInterface();
+		else {
+			if (evArg.target.closest("div.add-prayer")) {
+				this.closeForm("modifying");
+				this.#workingMaxLevel = true;
+			}
+		}
 	}
 	handlerSubmitEvents (evArg) {
 		if (evArg.target.matches("form#generating")) {
 			evArg.preventDefault();
-			this.addPrayer(evArg.target);
+			this.setPrayer(evArg.target, "POST");
+		}
+		else if (evArg.target.matches("form#modifying")) {
+			evArg.preventDefault();
+			this.setPrayer(evArg.target, "PUT");
 		}
 	}
 	// init
