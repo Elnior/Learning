@@ -9,37 +9,42 @@ class NextInterface extends OrationEditor {
 	#workingLv1 = false;
 	#workingLv2 = false;
 	#workingMaxLevel = true;
-	constructor (prayerSetter, formTemplate, confirmT, startTestButton) {
+	constructor (prayerSetter, formTemplate, confirmT, startTestButton, modeSelector, mainTest) {
 		super(confirmT);
 		this.prayerSetter = prayerSetter;
 		this.formTemplate = formTemplate;
 		this.startTestBox = startTestButton.parentElement;
+		this.modeSelector = modeSelector;
+		this.mainTest = mainTest;
 	}
 	static getElements (all, startTest) {
 		const $fragment = document.createDocumentFragment();
 		const $templateElement = document.getElementById("@element");
 		// the iterator
-		for (const element of all) {
-			// Content reference
+		all.forEach(element=> {
 			let { content } = $templateElement;
 			content.querySelector("p.en").textContent = element.english;
 			content.querySelector("p.es").textContent = element.spanish;
 			let $article = content.querySelector("article");
 			$article.id = element.id;
-			
-			if (element.state !== null)
-				$article.className = element.state? "aproved" : "missing";
+			let clsName = "";
+			if (element.state !== null) {
+				if (element.state)
+					clsName = 'aproved';
+				else 
+					clsName = 'missing';
+
+			}
+			$article.className = clsName;
 			let node = document.importNode(content, true);
 			$fragment.appendChild(node);
-		}
-
+		});
 		if (all.length == 0)
 			document.body.appendChild(NextInterface.verbose);
 		else {
 			NextInterface.testable = true;
 			startTest.classList.remove("disabled");
 		}
-
 		return $fragment;
 	}
 	static setNext (obj) {
@@ -131,16 +136,22 @@ class NextInterface extends OrationEditor {
 	}
 	closeForm (id = "generating") {
 		let $form = document.getElementById(id);
-		$form.ontransitionend = ()=> {
-			$form.ontransitionend = null;
-			$form.parentElement.removeChild($form);
-			this.#workingLv1 = false;
+		let wellDone = false;
+		if ($form) {
+			$form.ontransitionend = ()=> {
+				$form.ontransitionend = null;
+				$form.parentElement.removeChild($form);
+				this.#workingLv1 = false;
+			}
+			$form.classList.remove("visible");
+			wellDone = true;
+			this.prayerSetter.classList.remove("process");
 		}
-		$form.classList.remove("visible");
-		this.prayerSetter.classList.remove("process");
+		return wellDone;
 	}
 	handlerClickEvents (evArg) {
 		let selected = null;
+
 		if (this.#workingMaxLevel) {
 			if ((selected = evArg.target.closest("div.controls svg.del-prayer")) && !this.#workingLv2) {
 				this.#workingLv2 = true;
@@ -170,11 +181,33 @@ class NextInterface extends OrationEditor {
 				this.#workingMaxLevel = false;
 				this.viewEditor(delay);
 			}
+			else if(evArg.target.closest("div.start-test")) {
+				this.#workingMaxLevel = false;
+				this
+				.selectMode(delay)
+				.then(selector => {
+					selector.onclick = (mainArg)=> {
+						if (mainArg.target.closest("svg#cancel-t")) {
+							this.cancelTest(selector);
+							this.#workingMaxLevel = true;
+						}
+						else if (mainArg.target.closest("svg#start-now-t")) {
+							this.cancelTest(selector);
+							this.runTest(selector.querySelector("p#m-selected").dataset.mode, delay);
+						}
+					}
+				})
+				.catch(error => alert(error.message));
+			}
 		}
 		else {
-			if (evArg.target.closest("div.add-prayer")) {
-				this.closeForm("modifying");
-				this.#workingMaxLevel = true;
+			if (evArg.target.closest("div.add-prayer"))
+				this.#workingMaxLevel = this.closeForm("modifying");
+			else if (evArg.target.matches("p#m-selected")) {
+				if (evArg.target.dataset.mode == "en")
+					evArg.target.dataset.mode = evArg.target.className = "es"
+				else 
+					evArg.target.dataset.mode = evArg.target.className = "en"
 			}
 		}
 	}
@@ -242,7 +275,9 @@ class NextInterface extends OrationEditor {
 		const next = new NextInterface( 
 			document.querySelector("div.add-prayer"), document.getElementById("@form"),
 			document.getElementById("@confirm"),
-			document.getElementById("start-test")
+			document.getElementById("start-test"),
+			document.getElementById("@mode-selector"),
+			document.getElementById("@main-test")
 		);
 		document.addEventListener("click", next.handlerClickEvents.bind(next));
 		document.addEventListener("submit", next.handlerSubmitEvents.bind(next));

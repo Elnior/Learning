@@ -13,6 +13,7 @@
 		<div class="simpleLoader">Loading...</div>
 		<div class="home">
 			<a href="/">Home</a>
+			<a href="/setFile-89">Send file</a>
 		</div>
 		<div class="add-prayer">
 			<button id="add">+</button>
@@ -59,6 +60,34 @@
 				<button id="yes">Yes</button>
 				<button id="no">No</button>
 			</section>
+		</template>
+		<template id="@mode-selector">
+			<div id="select-m" class="gadget">
+				<div class="controls-for-acc">
+					<svg id="cancel-t" width="48" height="48" viewBox="0 0 100 85">
+						<path stroke="red" d="M1 1 L99 73 M13 84 L85 1" stroke-linecap="round" stroke-width="9" fill="transparent"></path>
+					</svg>
+					<svg id="start-now-t" width="48" height="48" viewBox="0 0 76 74">
+						<path stroke="#9aff22" d="M 14 31 L 23 58 Q32 26 62 16" stroke-linecap="round" stroke-linejoin="round" stroke-width="9" fill="transparent"></path>
+					</svg>
+				</div>
+				<p class="tx">Select Mode:</p>
+				<p id="m-selected" class="en" data-mode="en"></p>
+			</div>
+		</template>
+		<template id="@main-test">
+			<main id="testing" class="test">
+				<h2>1/3</h2>
+				<form id="working-now-in-test" autocomplete="off">
+					<div class="message" name="message"></div>
+					<input type="text" readonly value="Oration" name="oration">
+					<input type="text" placeholder="Response.." id="response" name="response">
+					<div class="allControls">
+						<button type="button">Stop</button>
+						<button type="submit">Send</button>
+					</div>
+				</form>
+			</main>
 		</template>
 		<!-- the scripts -->
 		<script src="/next.js" type="module"></script>

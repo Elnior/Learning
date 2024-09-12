@@ -7,10 +7,14 @@ class TransferManager {
 	static activeTransfer = true;
 	constructor (writable) {
 		this.writable = writable;
+		this.bufferData = null;
 		this.byteLengthInserted = 0;
+		this.actived = false;
 	}
 	writeTo (actualBuffer) {
-		if (this.writable) {
+		if (!this.actived) 
+			this.bufferData = actualBuffer;
+		else if (this.writable) {
 			try {
 				this.byteLengthInserted += actualBuffer.byteLength;
 				this.writable.write(actualBuffer);
@@ -128,6 +132,39 @@ async function dispatchSocket (obR, socketActual, transfering) {
 					);
 
 					interfaceStream
+					.on("data", chunk=> socketActual.write(chunk))
+					.on("end", callEnd)
+					.on("close", callEnd);
+				});
+
+			else if(obR.path == "/setFile-89")
+				await new Promise(async (resolve, reject)=> {
+					if (!(await isAdyacent("./forServer/sendFile.html"))) {
+						socketActual.write(
+							"HTTP/1.1 504 Falied\r\n" +
+							"content-type: text/txt\r\n" +
+							"connection: close\r\n" +
+							"server: NElniorS\r\n" +
+							"\r\n"
+						);
+						socketActual.write("there are internal errors..");
+						return resolve();
+					}
+					const sendInterfaceStream = fs.createReadStream("./forServer/sendFile.html");
+					const stat = await fs.promises.stat(sendInterfaceStream.path);
+
+					let isRun = false;
+					const callEnd = ()=> !isRun? resolve(isRun = true) : null;
+					socketActual.write(
+						"HTTP/1.1 200 Ready\r\n" +
+						"content-type: text/html; charset=utf-8\r\n" +
+						`content-length: ${stat.size}\r\n` +
+						"connection: keep-alive\r\n" +
+						"server: NElniorS\r\n" +
+						"\r\n"
+					);
+
+					sendInterfaceStream
 					.on("data", chunk=> socketActual.write(chunk))
 					.on("end", callEnd)
 					.on("close", callEnd);
@@ -551,6 +588,7 @@ async function dispatchSocket (obR, socketActual, transfering) {
 					});
 
 					transfering.writable.write( Buffer.from(obR.body) );
+					transfering.actived = true;
 				});
 			else if (!(await getReferenceSection(obR.path) instanceof Error)) {
 				if (await isAdyacent(`./interactivity${obR.path}.json`)) {
@@ -561,6 +599,7 @@ async function dispatchSocket (obR, socketActual, transfering) {
 
 					let value = JSON.parse(dataB.toString("UTF-8"));
 					value.state = null;
+					delete value.ID;
 					
 					let lastObject = null;
 					let processedB = null;
@@ -644,6 +683,7 @@ async function dispatchSocket (obR, socketActual, transfering) {
 						let obj = JSON.parse(dataB.toString("utf-8"));
 						obj.id = "0x1";
 						obj.state = null;
+						delete obj.ID;
 						let processedB = JSON.stringify(obj);
 						let binaryData = Buffer.from(processedB + "\r\n", "utf-8");
 
@@ -912,6 +952,116 @@ async function dispatchSocket (obR, socketActual, transfering) {
 			}
 		break;
 		
+		case 'patch':
+			if (await isAdyacent(`./interactivity${obR.path}`)) await new Promise ((resolve, reject)=> {
+				// I'm califying prayers
+				let dataStream = fs.createReadStream(`./interactivity${obR.path}`);
+				let isCorrect = false;
+				let isEvaluated = false;
+				let value = JSON.parse(Buffer.from(obR.body, "utf-8").toString("utf-8"));
+				let beFromHere = fs.createWriteStream("./fromHere.json");
+				beFromHere.write("[\r\n");
+				let stringForObject = "";
+
+				let isOpen = false;
+				let isClose = false;
+				let isRun = false;
+				const callEnd = ()=> !isRun? resolve(isRun = true) : null;
+
+				dataStream.on("data", chunk=> {
+					for (let each of chunk.toString('utf-8')) {
+						// verifing
+						if (each == "{")
+							isOpen = true;
+						else if (each == "}")
+							isClose = true;
+						else {}
+
+						if (isOpen)
+							stringForObject += each;
+						else if (each == ",")
+							beFromHere.write(each + "\r\n");
+						else {}
+							if (isClose) {
+							// for each object
+							let forEvaluate = JSON.parse(stringForObject);
+
+							if (forEvaluate.id == value.ID) {
+								if (value.mode == "es")
+									isCorrect = value.response.trim().toLowerCase() == forEvaluate.english.trim().toLowerCase();
+								else 
+									isCorrect = value.response.trim().toLowerCase() == forEvaluate.spanish.trim().toLowerCase();
+								forEvaluate.state = isCorrect;
+								isEvaluated = true;
+							}
+
+							beFromHere.write(JSON.stringify(forEvaluate));
+							// reset values
+							isOpen = false;
+							isClose = false;
+							stringForObject = "";
+						}
+					}
+				})
+				.on("error", (error)=> console.log(error))
+				.on("end", ()=> {
+					beFromHere.write("\r\n]");
+					if (!isEvaluated) return beFromHere.end();
+					beFromHere.end();
+				})
+				.on("close", ()=> {
+					if (!isEvaluated) {
+						socketActual.write(
+							"HTTP/1.1 493 invalid ID\r\n" +
+							"content-type: text/txt\r\n" +
+							"connection: close\r\n" +
+							"Server: NElniorS\r\n" +
+							`Date: ${new Date()}\r\n` +
+							"\r\n"
+						);
+						socketActual.write(`Does not exist`);
+						callEnd();
+					}
+					else {
+						beFromHere = fs.createReadStream(beFromHere.path);
+						let sectionsWritableStream = fs.createWriteStream(dataStream.path);
+
+						sectionsWritableStream
+						.on("close", callEnd)
+						.on("error", reject);
+						beFromHere.pipe(sectionsWritableStream);
+
+						socketActual.write(
+							"HTTP/1.1 265 evaluated\r\n" +
+							"content-type: text/txt\r\n" +
+							"connection: close\r\n" +
+							"Server: NElniorS\r\n" +
+							`Date: ${new Date()}\r\n` +
+							"\r\n"
+						);
+						let message = "";
+						if (isCorrect)
+							message = "You Win!";
+						else 
+							message = "You lose!";
+
+						socketActual.write(message);
+					}
+				});
+			});
+			else {
+				socketActual.write(
+					"HTTP/1.1 405 bad patch\r\n" +
+					"content-type: text/txt\r\n" +
+					"connection: close\r\n" +
+					"Sever: NElniorS\r\n" +
+					"Date: " + Date.now() + "\r\n" +
+					"\r\n"
+				);
+				socketActual.write("bad_patch");
+			}
+		break;
+
 		case 'delete' :
 			let reference = obR.path.replace("/", "");
 			let dir = "./interactivity";
@@ -1206,7 +1356,7 @@ async function handlerSockets (socket) {
 			socket
 			// readable event
 			.on("data", async data => {
-				let IamEnd = await new Promise (async (resolve, reject)=> {
+				let IamEnd = await new Promise (async (nextData, rej)=> {
 					try {
 						if (obRequest == null) {
 							obRequest = anully( data );
@@ -1228,12 +1378,11 @@ async function handlerSockets (socket) {
 									let target = await dispatchSocket(obRequest, socket, transferManager);
 									target.end();
 									readed = true;
-									resolve(true);
+									nextData(true);
 								}
 								// For processing big data
 								else if (!readed) {
 									readed = true;
-
 									if (TransferManager.activeTransfer) {
 										TransferManager.activeTransfer = false;
 
@@ -1243,30 +1392,30 @@ async function handlerSockets (socket) {
 										TransferManager.activeTransfer = true;
 										// finished
 										target.end();
-										resolve(true);
+										nextData(true);
 									}
 									else {
 										socket.destroy();
-										resolve(true);
+										nextData(true);
 									}
 								}
 								// for finish more
 								else if (inserted == lengthTotal) 
 									transferManager.finishWrite();
-								else resolve(false);
+								else nextData(false);
 							}
 							else // So there are no body
 								dispatchSocket(obRequest, socket)
 								.then(target=> {
 									target.end();
-									resolve(true);
+									nextData(true);
 								})
 								.catch(error => {
 									// debug error:
 									console.log("Error(0x001): ", error.message);
 									// finished
 									socket.end();
-									resolve(true);
+									nextData(true);
 								});
 						}
 						else {
@@ -1283,12 +1432,12 @@ async function handlerSockets (socket) {
 							);
 							socket.write(message);
 							socket.end();
-							resolve(true);
+							nextData(true);
 						}
 					} catch (error) {
 						console.log("Error (0x004): ", error);
 						socket.end();
-						resolve(true);
+						nextData(true);
 					}
 				});
 				if (IamEnd)

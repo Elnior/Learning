@@ -1,4 +1,5 @@
-@import "/barStyle.css";
+@import "/barStyle.css" all;
+@import "/playingTest.css";
 body,
 html, *,
 *::after, *::before {
@@ -329,6 +330,7 @@ div.home {
 }
 div.home a {
 	color: green;
+	margin: 0px 15px 0px 15px;
 	font: bolder 34px normal;
 }
 div.home a:hover {

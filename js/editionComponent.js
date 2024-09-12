@@ -1,3 +1,5 @@
+import PlayTest from './realizeTest.js';
+
 export default class OrationEditor {
     #id = null;
     get identification () {
@@ -79,5 +81,31 @@ export default class OrationEditor {
     bigEffect () {
         let qtnReference = document.body.querySelector("section#confirm-deletion");
         if(qtnReference) qtnReference.classList.add("big");
+    }
+    runTest (mode, delay) {
+        PlayTest.Start(
+            document.importNode(this.mainTest.content, true),
+            Array.from(document.querySelectorAll("article[id]")).map(el => ({
+                ID: el.id,
+                en: el.querySelector("p.en").textContent,
+                es: el.querySelector("p.es").textContent
+            })),
+            mode,
+            delay
+        )
+        .then(()=> window.location.reload())
+        .catch(err=> alert(err.message));
+    }
+    async selectMode (delay) {
+        let nd = document.importNode(this.modeSelector.content, true);
+        document.body.appendChild(nd);
+        let $selector = document.getElementById("select-m");
+        await delay(10);
+        $selector.classList.add("visible");
+        return $selector;
+    }
+    cancelTest (selector) {
+        selector.ontransitionend = ()=> selector.parentElement? selector.parentElement.removeChild(selector) : null;
+        selector.classList.remove("visible");
     }
 }

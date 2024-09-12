@@ -4,7 +4,6 @@ import Manager from './manager.js';
 class HandlerSection extends Manager {
 	#selected = false;
 	#processing = false;
-	#IsPresent = false;
 	#sectionActual = null;
 	liSelected = null;
 	get sectionActual () {

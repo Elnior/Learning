@@ -1,0 +1,125 @@
+div.gadget {
+    background-color: #fffee0eb;
+    z-index: 5;
+    position: fixed;
+    margin: 0px;
+    left: 0px;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    transform: translateX(-100vw);
+    transition: 280ms transform ease-in;
+}
+div.gadget.visible {
+    transform: translateX(0px);
+}
+div.gadget div.controls-for-acc {
+    background-color: black;
+    padding: 20px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+}
+div.gadget div.controls-for-acc svg {
+    cursor: pointer;
+    transform: scale(0.8);
+    transition: 160ms transform ease;
+}
+div.gadget div.controls-for-acc svg:hover {
+    transform: scale(1);
+}
+div.gadget p.tx {
+    color: black;
+    font: bold 48px monospace;
+    text-decoration: underline solid red;
+    text-align: center;
+}
+div.gadget p#m-selected {
+    background-color: black;
+    margin: 10px auto;
+    border-radius: 50px;
+    cursor: pointer;
+    width: 100px;
+    height: 50px;
+}
+div.gadget p#m-selected::before {
+    content: 'En';
+    display: inline-flex;
+    font: bolder 30px serif;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    background-color: yellow;
+    border-radius: 25px;
+    position: relative;
+    top: 0px;
+    left: 0px;
+    right: auto;
+    bottom: auto;
+    transition: 50ms left linear;
+}
+div.gadget p#m-selected.es::before {
+    content: 'Es';
+    left: 50px;
+}
+/*The test interface minimalist styles*/
+main.test {
+    background-color: yellow;
+    padding: 0px;
+    margin: 0px;
+    z-index: 6;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    transform: translateY(-100vh);
+    transition: 230ms transform ease;
+}
+main.test.visible {
+    transform: translateY(0px);
+}
+main.test h2 {
+    background-color: #5400ff;
+    font: bolder 50px monospace;
+    padding: 20px 0px 20px 0px;
+    color: white;
+    text-align: center;
+}
+main.test form {
+    background-color: #ff000047;
+    padding: 0px;
+    text-align: center;
+}
+main.test form input, div.message {
+    font: bolder 45px serif;
+    display: block;
+    width: 80%;
+    min-width: 300px;
+    max-width: 650px;
+    margin: 10px auto 10px auto;
+}
+
+main.test form button {
+    font: bolder 45px "courier new", monospace;
+    padding: 8px;
+    cursor: pointer;
+}
+main.test form button[type="submit"] {
+    background-color: green;
+    color: white;
+    margin-left: 20px;
+}
+main.test form button[type="button"] {
+    background-color: red;
+    color: white;
+    margin-right: 20px;
+}
+main.test form button[type="submit"]:hover {
+    background-color: #00ff00;
+}
+main.test form button[type="button"]:hover {
+    background-color: #ff4b4b;
+}
