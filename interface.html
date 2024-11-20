@@ -8,7 +8,7 @@
 	</head>
 	<body>
 		<header>
-			<h1>Sections:</h1>
+			<h1>Sections: <strong id="totalSections">0</strong></h1>
 			<button id="set-new-section">+</button>
 		</header>
 		<main>
@@ -30,11 +30,11 @@
 		<template id="@generateSection">
 			<section id="createSection" class="creating">
 				<form method="post" autocomplete="off" id="creatingSection" action="/create/section">
-					
+
 					<label for="section">Seccion Name:</label>
-					
+
 					<div class="message"></div>
-					
+
 					<input type="text" placeholder="Write here.." name="section" id="section" >
 
 					<div class="controls">
@@ -52,7 +52,7 @@
 				<button class="option" id="info">Information</button>
 			</div>
 		</template>
-		
+
 		<template id="@notifying">
 			<!-- First element -->
 			<div id="toConfirm" class="confirm">

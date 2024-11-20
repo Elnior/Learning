@@ -31,7 +31,7 @@ class NextInterface extends OrationEditor {
 			if (element.state !== null) {
 				if (element.state)
 					clsName = 'aproved';
-				else 
+				else
 					clsName = 'missing';
 
 			}
@@ -56,16 +56,22 @@ class NextInterface extends OrationEditor {
 		content.querySelector("p.es").textContent = obj.spanish;
 		let $article = content.querySelector("article");
 		$article.id = obj.id;
-			
+
 		if (obj.state !== null)
 			$article.className = obj.state? "aproved" : "missing";
-		else {}
+		else
+		    $article.removeAttribute("class");
 
 		if (selection)
 			document.body.removeChild(selection);
 
+		let theFirst = document.querySelector("article[id]");
 		let node = document.importNode(content, true);
-		document.body.appendChild(node);
+
+		if (theFirst)
+		    document.body.insertBefore(node, theFirst);
+		else
+		    document.body.appendChild(node);
 	}
 	async setPrayer (generated, method) {
 		let $messager1 = generated["en-data"].previousElementSibling;
@@ -73,7 +79,7 @@ class NextInterface extends OrationEditor {
 
 		let $messager2 = generated["es-data"].previousElementSibling;
 		let otherValue = generated["es-data"].value;
-		
+
 		if (NextInterface.CONDITION.test(value)) {
 			if (NextInterface.CONDITION.test(otherValue)) {
 				let dataForSend = {
@@ -94,6 +100,7 @@ class NextInterface extends OrationEditor {
 					body
 				}
 				let response = await fetch(window.location.href, opt);
+
 				if (response.status == 256) {
 					NextInterface.setNext(await response.json());
 					this.closeForm();
@@ -105,10 +112,10 @@ class NextInterface extends OrationEditor {
 					this.closeForm("modifying");
 					this.startTestBox.classList.remove("disabled");
 				}
-				else 
+				else
 					$messager1.textContent = response.statusText;
 			}
-			else 
+			else
 				$messager2.textContent = "Write valid words please!";
 		}
 		else
@@ -122,11 +129,11 @@ class NextInterface extends OrationEditor {
 		$form.className = "generating";
 
 		content.querySelector("legend").textContent = "Generate words";
-		content.querySelector("input#en").value = "";
-        content.querySelector("input#es").value = "";
+		content.querySelector("textarea#en").value = "";
+        content.querySelector("textarea#es").value = "";
 
 		let imported = document.importNode(content, true);
-		
+
 		document.body.appendChild(imported);
 
 		$form = document.getElementById($form.id);
@@ -167,7 +174,7 @@ class NextInterface extends OrationEditor {
 				this.#workingLv2 = false;
 				this.deletePrayers(delay);
 			}
-			else if (this.#workingLv2) 
+			else if (this.#workingLv2)
 				this.bigEffect();
 
 			else if (evArg.target.closest("div.add-prayer") && !this.#workingLv1) {
@@ -206,7 +213,7 @@ class NextInterface extends OrationEditor {
 			else if (evArg.target.matches("p#m-selected")) {
 				if (evArg.target.dataset.mode == "en")
 					evArg.target.dataset.mode = evArg.target.className = "es"
-				else 
+				else
 					evArg.target.dataset.mode = evArg.target.className = "en"
 			}
 		}
@@ -245,7 +252,7 @@ class NextInterface extends OrationEditor {
 			if (response.status == 290) {
 				const { name } = await response.json();
 				$h1.textContent = name;
-				
+
 				delete opt.mode;
 				await delay(2500);
 
@@ -255,7 +262,7 @@ class NextInterface extends OrationEditor {
 					let $chunk = NextInterface.getElements(await response.json(), $startTest);
 					document.body.appendChild($chunk);
 				}
-				else 
+				else
 					document.body.appendChild(NextInterface.verbose);
 			}
 			else {
@@ -272,7 +279,7 @@ class NextInterface extends OrationEditor {
 		}
 
 
-		const next = new NextInterface( 
+		const next = new NextInterface(
 			document.querySelector("div.add-prayer"), document.getElementById("@form"),
 			document.getElementById("@confirm"),
 			document.getElementById("start-test"),

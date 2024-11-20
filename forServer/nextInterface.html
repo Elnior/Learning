@@ -8,13 +8,14 @@
 	</head>
 	<body>
 		<header>
-			<h1>.</h1>
+			<h1>Section</h1>
 		</header>
-		<div class="simpleLoader">Loading...</div>
 		<div class="home">
 			<a href="/">Home</a>
-			<a href="/setFile-89">Send file</a>
 		</div>
+
+		<div class="simpleLoader">Loading...</div>
+
 		<div class="add-prayer">
 			<button id="add">+</button>
 		</div>
@@ -39,20 +40,18 @@
 			</article>
 		</template>
 		<template id="@form">
-			<form autocomplete="off" enctype="multipart/form-data">
-				<fieldset>
-					<legend>.</legend>
-					<label for="en">English:</label>
-					<div class="message"></div>
-					<input type="text" placeholder="Hi!" id="en" name="en-data">
-
-					<label for="es">Spanish:</label>
-					<div class="message"></div>
-					<input type="text" placeholder="Hola!" id="es" name="es-data">
-
-					<button id="sender" type="submit">Send</button>
-				</fieldset>
-			</form>
+		    <form autocomplete="off" enctype="multipart/form-data">
+				    <fieldset>
+					    <legend>.</legend>
+					    <label for="en">English:</label>
+					    <div class="message"></div>
+					    <textarea placeholder="New prayer" id="en" name="en-data"></textarea>
+					    <label for="es">Spanish:</label>
+					    <div class="message"></div>
+					    <textarea type="text" placeholder="Nueva frase" id="es" name="es-data"></textarea>
+					    <button id="sender" type="submit">Send</button>
+				    </fieldset>
+		    </form>
 		</template>
 		<template id="@confirm">
 			<section id="confirm-deletion" class="confirm">
@@ -64,10 +63,10 @@
 		<template id="@mode-selector">
 			<div id="select-m" class="gadget">
 				<div class="controls-for-acc">
-					<svg id="cancel-t" width="48" height="48" viewBox="0 0 100 85">
+					<svg id="cancel-t" width="148" height="148" viewBox="0 0 100 85">
 						<path stroke="red" d="M1 1 L99 73 M13 84 L85 1" stroke-linecap="round" stroke-width="9" fill="transparent"></path>
 					</svg>
-					<svg id="start-now-t" width="48" height="48" viewBox="0 0 76 74">
+					<svg id="start-now-t" width="148" height="148" viewBox="0 0 76 74">
 						<path stroke="#9aff22" d="M 14 31 L 23 58 Q32 26 62 16" stroke-linecap="round" stroke-linejoin="round" stroke-width="9" fill="transparent"></path>
 					</svg>
 				</div>

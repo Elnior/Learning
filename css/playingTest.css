@@ -30,11 +30,12 @@ div.gadget div.controls-for-acc svg:hover {
 }
 div.gadget p.tx {
     color: black;
-    font: bold 48px monospace;
+    font: bold 88px monospace;
     text-decoration: underline solid red;
     text-align: center;
 }
 div.gadget p#m-selected {
+    transform: translateY(50px) scale(2);
     background-color: black;
     margin: 10px auto;
     border-radius: 50px;
@@ -66,11 +67,12 @@ div.gadget p#m-selected.es::before {
 }
 /*The test interface minimalist styles*/
 main.test {
-    background-color: yellow;
+    background-image: radial-gradient(yellow, black, cyan);
     padding: 0px;
     margin: 0px;
     z-index: 6;
     position: fixed;
+    overflow: hidden auto;
     top: 0px;
     left: 0px;
     right: 0px;
@@ -82,8 +84,8 @@ main.test.visible {
     transform: translateY(0px);
 }
 main.test h2 {
-    background-color: #5400ff;
-    font: bolder 50px monospace;
+    background-color: #150635;
+    font: bolder 65px monospace;
     padding: 20px 0px 20px 0px;
     color: white;
     text-align: center;
@@ -94,16 +96,20 @@ main.test form {
     text-align: center;
 }
 main.test form input, div.message {
-    font: bolder 45px serif;
+    font: bolder 60px serif;
+    word-wrap: break-word;
     display: block;
     width: 80%;
     min-width: 300px;
     max-width: 650px;
+    color: white;
     margin: 10px auto 10px auto;
 }
-
+main.test form input {
+    color: black;
+}
 main.test form button {
-    font: bolder 45px "courier new", monospace;
+    font: bolder 60px "courier new", monospace;
     padding: 8px;
     cursor: pointer;
 }

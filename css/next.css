@@ -8,11 +8,15 @@ html, *,
 	box-sizing: border-box;
 }
 body {
-	background-color: black;
+	background-image: url("nice-waters.jpg");
+	background-size: cover;
+	background-position: center center;
+	background-attachment: fixed;
+	background-repeat: no-repeat;
 }
 header {
 	color: white;
-	font: lighter italic 28px monospace;
+	font: lighter italic 68px monospace;
 	text-align: left;
 	margin: 10px auto 0px auto;
 	width: 90vw;
@@ -40,8 +44,8 @@ div.add-prayer, div.start-test {
 	align-items: center;
 	position: fixed;
 	top: auto;
-	bottom: 5px;
-	right: 5px;
+	bottom: 43px;
+	right: 43px;
 	left: auto;
 	background-color: blue;
 	width: 80px;
@@ -51,11 +55,12 @@ div.add-prayer, div.start-test {
 	box-shadow: 3px 3px 4px gray;
 	transform: rotate(0deg);
 	transition: 320ms all linear;
+	transform: scale(2);
 }
 div.start-test {
 	background-color: black;
 	z-index: 4;
-	left: 5px;
+	left: 43px;
 	right: auto;
 }
 div.start-test:hover {
@@ -85,9 +90,9 @@ div.start-test.disabled {
 	cursor: default;
 }
 div.start-test.disabled button {
-	background-color: #444;					
+	background-color: #444;
 }
-div.add-prayer.process { 
+div.add-prayer.process {
 	background-color: red;
 	transform: rotate(45deg);
 	color: white;
@@ -106,7 +111,7 @@ div.add-prayer button
 div.simpleLoader {
 	text-align: center;
 	color: white;
-	font: bolder 48px normal;
+	font: bolder 58px normal;
 	background-color: transparent;
 }
 
@@ -119,16 +124,16 @@ div.thereAreNo
 }
 article {
 	width: 80vw;
-	background-color: #ffff0017;
+	background-color: #4d0277c2;
 	margin: 10px auto 10px auto;
 	padding: 0px;
 	border-radius: 1em;
 }
 article.missing	{
-	background-color: #ff000030;
+	background-color: #ff000091;
 }
 article.aproved {
-	background-color: #00800040;
+	background-color: #014a01d6;
 }
 
 article div.controls {
@@ -162,14 +167,17 @@ article div.controls svg:hover {
 article div.controls svg:active {
 	transform: scale(1);
 }
+form.generating::-webkit-scrollbar,
+form.modifying::-webkit-scrollbar {
+    appearance: none;
+    display: none;
+}
 form.generating, form.modifying {
-	background-color: #1a1a57;
-	width: 100%;
-	display: flex;
+	background-color: #000000f0;
+	width: auto;
 	transform: translateX(100vw);
-	flex-flow: row;
-	justify-content: center;
-	align-items: center;
+	overflow-x: hidden;
+	overflow-y: auto;
 	padding: 0px;
 	margin: 0px;
 	z-index: 2;
@@ -190,22 +198,25 @@ form.modifying.visible {
 form.modifying fieldset,
 form.generating fieldset {
 	width: 100%;
-	max-width: 400px;
+	min-width: 300px;
 	border: none;
 	padding: 0px;
-	background-color: transparent ;
+	margin: 0px;
+	background-color: transparent;
 }
 form.generating fieldset legend,
 form.modifying fieldset legend {
 	text-align: center;
-	font: bolder oblique 45px monospace;
+	display: block;
+	width: 100%;
+	font: bolder oblique 120px monospace;
 	text-decoration: solid red underline;
 	color: white;
 }
 form.generating fieldset label,
 form.modifying fieldset label {
 	padding: 10px 3px 0px 3px;
-	font: bold 35px "Courier new", serif;
+	font: bold 85px "Courier new", serif;
 	color: white;
 	text-align: left;
 	display: block;
@@ -216,18 +227,20 @@ form.modifying fieldset div.message {
 	background-color: red;
 	text-align: center;
 	white-space: normal;
-	word-wrap: wrap;
-	word-break: break-word;	
-	font: bold 33px normal;
+	word-wrap: break-word;
+	font: bold 54px normal;
 	padding: 0px;
-	margin: 0px;
+	margin: 0px auto;
 	color: white;
 }
-form.generating fieldset input,
-form.modifying fieldset input {
+form.generating fieldset textarea,
+form.modifying fieldset textarea {
+	width: 95%;
 	display: block;
-	width: 100%;
-	min-width: 200px;
+	min-height: 280px;
+	resize: vertical;
+	padding: 6px;
+	margin: 4px auto;
 	background-color: #444;
 	text-indent: 16px;
 	border: none;
@@ -236,28 +249,26 @@ form.modifying fieldset input {
 	border-radius: 1em;
 	text-align: left;
 	white-space: normal;
-	font: bold 33px monospace;
-	padding: 0px;
-	margin: 0px;
+	font: bold 45px monospace;
 	transition: 240ms background-color ease;
 }
-form.generating fieldset input::placeholder,
-form.modifying fieldset input::placeholder {
+form.generating fieldset textarea::placeholder,
+form.modifying fieldset textarea::placeholder {
 	color: yellow;
 }
-form.generating fieldset input:focus,
-form.modifying fieldset input:focus {
+form.generating fieldset textarea:focus,
+form.modifying fieldset textarea:focus {
 	background-color: black;
 }
 form.generating fieldset button,
 form.modifying fieldset button {
 	padding: 10px;
 	background-color: black;
-	font: bold 35px "Courier new", serif;
+	font: bold 45px "Courier new", serif;
 	color: white;
 	text-align: left;
 	display: block;
-	margin: 10px auto;
+	margin: 30px auto;
 	cursor: pointer;
 	transition: 100ms background-color linear;
 }
@@ -331,7 +342,7 @@ div.home {
 div.home a {
 	color: green;
 	margin: 0px 15px 0px 15px;
-	font: bolder 34px normal;
+	font: bolder 54px normal;
 }
 div.home a:hover {
 	color: cyan;

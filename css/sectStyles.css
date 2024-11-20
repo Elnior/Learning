@@ -30,7 +30,7 @@ section.creating form label,
 section.changeSectionName form label {
 	display: block;
 	color: black;
-	font: bolder 2.4em monospace;
+	font: bolder 60px monospace;
 	text-align: center;
 	text-decoration: red solid underline;
 	padding: 8px;
@@ -41,7 +41,7 @@ section.changeSectionName form label {
 section.creating form div.message,
 section.changeSectionName form div.message {
 	text-align: center;
-	font: bold 1.5em normal;
+	font: bold 45px normal;
 	color: red;
 }
 
@@ -52,7 +52,7 @@ section.changeSectionName form div.message {
 section.creating form input[type="text"],
 section.changeSectionName form input[type="text"]
  {
-	font: bold 1.5em monospace;
+	font: bold 55px monospace;
 	background-color: white;
 	display: block;
 	margin: auto;
@@ -69,8 +69,8 @@ section.changeSectionName form div.controls {
 }
 section.creating form div.controls input:not(input[type="text"]),
 section.changeSectionName form div.controls input:not(input[type="text"]) {
-	font: bold 2em monospace;
-	margin: 8px;
+	font: bold 50px monospace;
+	margin: 30px;
 	color: white;
 	cursor: pointer;
 }
@@ -84,7 +84,7 @@ section.changeSectionName form div.controls input[type="button"] {
 }
 
 div.options {
-	width: 130px;
+	width: max-content;
 	padding: 0px;
 	margin: 0px;
 	z-index: 2;
@@ -94,10 +94,11 @@ div.options {
 	align-items: stretch;
 }
 div.options button.option {
+    display: block;
 	background-color: white;
 	color: black;
-	font: bold 18px monospace;
-	margin: 5px;
+	font: bold 50px monospace;
+	margin: 10px;
 	cursor: pointer;
 	transition: 300ms background-color ease;
 }

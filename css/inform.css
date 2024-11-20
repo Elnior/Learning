@@ -1,9 +1,11 @@
 article.inform {
 	background-color: black;
 	width: 80%;
-	height: 60vh;
+	height: 80vh;
+	overflow-x: hidden;
+	overflow-y: auto;
 	position: fixed;
-	top: 20vh;
+	top: 20px;
 	left: 10%;
 	padding: 0px;
 	margin: 0px;
@@ -18,7 +20,7 @@ article.inform h2 {
 	background-size: 100% 100%;
 	text-align: center;
 	word-wrap: break-word;
-	font: bolder 1.5em monospace;
+	font: bolder 58px monospace;
 	background-image: linear-gradient(cyan, red);
 	color: transparent;
 	-webkit-background-clip: text;
@@ -27,7 +29,7 @@ article.inform h2 {
 article.inform p {
 	color: white;
 	text-align: center;
-	font: bold 1.5em normal;
+	font: bold 50px normal;
 }
 article.inform p i {
 	color: yellow;
@@ -36,7 +38,7 @@ article.inform button {
 	background-color: #444;
 	display: block;
 	color: cyan;
-	font: bolder 1.5em normal;
+	font: bolder 50px normal;
 	padding: 5px 20px 5px 20px;
 	border-radius: 1em;
 	transition: 250ms background-color linear;

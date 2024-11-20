@@ -1,5 +1,6 @@
 export default class Manager {
 	#elementForDeletion = null;
+	static counter = document.getElementById("totalSections");
 	getFragmentOfDocument (sections) {
 		const fragment = document.createDocumentFragment();
 
@@ -26,24 +27,24 @@ export default class Manager {
 	}
 	async loadSections() {
 		try {
-			const response = await fetch(window.location.href, {
+			const response = await fetch(`${window.location.origin}/53ct10n5-actual`, {
 				method: 'get',
 				headers: {
 					accept: "application/json",
-					date: new Date()
+					date: Date.now()
 				},
 				mode: 'cors',
 				body: null
 			});
 			if (response.ok) {
 				let sections = await response.json();
-
+				Manager.counter.textContent = sections.length;
 				let $ul = document.createElement("ul");
 						$ul.id = "section-list";
 
 					let $list = this.getFragmentOfDocument( sections.map(object=> object.name) );
 					$ul.appendChild($list);
-						
+
 					this.$nav.appendChild($ul);
 			}
 			else {
@@ -66,7 +67,7 @@ export default class Manager {
 				headers: {
 					"content-type": "text/txt",
 					"accept": "text/txt",
-					"date": new Date()
+					"date": Date.now()
 				},
 				body: evArg.target.section.value
 			},
@@ -77,10 +78,11 @@ export default class Manager {
 				let response = await fetch(action, obj);
 				if(response.status == 206) {
 					let $ul = this.$nav.querySelector("ul#section-list");
+					Manager.counter.textContent = Number(Manager.counter.textContent) + 1;
 					if ($ul) {
 						let $list = this.getFragmentOfDocument([obj.body]);
 						$ul.appendChild($list);
-						
+
 						this.$nav.appendChild($ul);
 					}
 					else {
@@ -89,7 +91,7 @@ export default class Manager {
 
 						let $list = this.getFragmentOfDocument([obj.body]);
 						$ul.appendChild($list);
-						
+
 						this.$nav.appendChild($ul);
 					}
 					// Remove boxs
@@ -167,7 +169,7 @@ export default class Manager {
 		$buttonForDelete.dataset.mainurl = evArg.target.parentElement.dataset.reference;
 
 		$i.textContent = evArg.target.parentElement.dataset.reference.replaceAll(/http\:\/{2}.*\//ig, "").replaceAll("-", " ");
-		
+
 		let node = document.importNode($template.content.querySelector("div#toConfirm"), true);
 		document.body.appendChild(node);
 		await delay(0);
@@ -217,6 +219,7 @@ export default class Manager {
 				the status code is 202 */
 			if (response.status == 202) {
 				this.liSelected.parentElement.removeChild(this.liSelected);
+				Manager.counter.textContent = Number(Manager.counter.textContent) - 1;
 
 				const $list = document.getElementsByTagName("li");
 
@@ -232,13 +235,13 @@ export default class Manager {
 				document.body.removeChild($toConfirm);
 
 				await this.viewNotification(
-					`Already deleted the <i class="actual-section">${await response.text()}</i> section`,
+					`${await response.text()}`,
 					 delay,
 					 3000
 				);
 				this.processing = false;
 			}
-			else 
+			else
 				await this.viewNotification(
 					await response.text(),
 					delay,
@@ -269,7 +272,7 @@ export default class Manager {
 					ndx = date.toString().indexOf(":") - 3,
 					validDate  = date.toString().split("").filter((el, index)=> index < ndx).join("");
 					// writed short date
-				$p.innerHTML = `Creation Date: <i>${validDate}</i> <br>Name: <i>${sectionInformation.name}</i>`;
+				$p.innerHTML = `Name: <i>${sectionInformation.name}</i> <br> Creation Date: <i>${validDate}</i>`;
 				this.infoToSide.classList.remove("toSide");
 			}
 			else

@@ -40,9 +40,9 @@ export default class PlayTest {
                     this.reject(error);
                 }
             }
-            else 
+            else
                 this.$message.textContent = "Write a valid response please!";
-            
+
             this.$form.onsubmit = mainMethod;
         }
         // the submit event
@@ -64,9 +64,9 @@ export default class PlayTest {
                 this.response.value = "";
                 this.$message.textContent = "";
 
-                if (this.#mode == "en") 
+                if (this.#mode == "en")
                     this.oration.value = data.en;
-                else 
+                else
                     this.oration.value = data.es;
 
                 this.resolve = resolve;

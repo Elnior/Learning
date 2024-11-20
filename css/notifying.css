@@ -12,7 +12,7 @@ div.confirm {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
 	grid-template-rows: repeat(3, 1fr);
-	grid-template-areas: 
+	grid-template-areas:
 	"message message message"
 	"yesButton . noButton"
 	". . ."
@@ -36,7 +36,7 @@ div.confirm p {
 	text-align: center;
 	grid-area: message;
 	align-self: start;
-	font: bolder 1.2em monospace;
+	font: bolder 58px monospace;
 	color: white;
 }
 div.confirm i {
@@ -56,7 +56,7 @@ div.confirm button:hover {
 }
 div.confirm button.y {
 	grid-area: yesButton;
-	font: bold 1.4em normal;
+	font: bold 50px normal;
 	padding: 10px 25px 10px 25px;
 	align-self: start;
 	justify-self: end;
@@ -65,7 +65,7 @@ div.confirm button.y {
 }
 div.confirm button.n {
 	grid-area: noButton;
-	font: bold 1.4em normal;
+	font: bold 50px normal;
 	padding: 10px 25px 10px 25px;
 	align-self: start;
 	justify-self: start;
@@ -82,14 +82,11 @@ div.notification {
 	left: 0px;
 	right: 0px;
 	text-align: center;
-	font: bolder 1.3em normal;
+	font: bolder 50px normal;
 	z-index: 6;
 	transform: translateX(100vw);
 	transition: 366ms transform ease;
 }
 div.notification.visible {
 	transform: translateX(0px);
-}
-div.notification i.actual-section {
-	color: yellow;
 }

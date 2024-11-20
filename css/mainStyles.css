@@ -2,6 +2,7 @@
 @import "./sectStyles.css" all;
 @import "./notifying.css" all;
 @import "./inform.css" all;
+
 body, html {
 	box-sizing: border-box;
 	padding: 0px;
@@ -9,12 +10,10 @@ body, html {
 }
 
 body {
-	background-image: linear-gradient(30deg, purple, black);
+	background-image: linear-gradient(160deg, purple, black);
 	background-repeat: no-repeat;
 	background-size: 100vw 100vh;
 	background-attachment: fixed;
-	font-size: 24px;
-
 }
 
 header {
@@ -31,12 +30,12 @@ header {
 
 header button {
 	display: block;
-	width: 50px;
-	height: 50px;
+	width: 80px;
+	height: 80px;
 	padding: 0px;
 	background-color: purple;
 	color: white;
-	font-size: 42px;
+	font-size: 65px;
 	cursor: pointer;
 	border-radius: 1em;
 	transition: 366ms all ease;
@@ -50,11 +49,13 @@ header button:active {
 	color: white;
 }
 header h1 {
-	font-size: 2.5em;
+	font-size: 60px;
 	color: white;
 	margin: 0px;
 }
-
+header h1 strong {
+    color: yellow;
+}
 main {
 	padding: 10px;
 	margin: 0px;
@@ -74,12 +75,12 @@ main nav ul {
 	margin: 0px;
 }
 main nav ul li {
-	width: 60%;
-	max-width: 500px;
+	width: 80%;
+	max-width: 800px;
 	min-width: 180px;
 	box-shadow: 3px 2px 6px 2px black;
 	background-color: black;
-	font: bold 2em monospace;
+	font: bold 50px monospace;
 	margin-top: 40px;
 	padding: 10px;
 	display: flex;
@@ -116,7 +117,7 @@ main nav ul li button {
 	cursor: pointer;
 	color: yellow;
 	border: none;
-	font: bolder 1.4em normal;
+	font: bolder 48px normal;
 	background-color: black;
 	transition: 200ms color linear;
 }
@@ -133,7 +134,7 @@ div.thereAreNo {
 	text-align: center;
 	background-color: black;
 	color: gray;
-	font: bolder 2em monospace;
+	font: bolder 45px monospace;
 	padding: 20px;
 }
 
@@ -163,7 +164,7 @@ div.loader div.figure {
 	border-radius: 4px;
 }
 div.loader div.caption {
-	font: bolder 2em monospace;
+	font: bolder 40px monospace;
 	color: white;
 	text-align: center;
 }

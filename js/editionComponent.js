@@ -37,7 +37,7 @@ export default class OrationEditor {
             $elementForDeletion.parentElement.removeChild($elementForDeletion);
             this.hideQuestion(delay);
         }
-        else 
+        else
             alert(`Message: ${await res.text()}`);
     }
     async showQuestion (delay) {
@@ -68,8 +68,8 @@ export default class OrationEditor {
         $form.className = "modifying";
         let $legend = content.querySelector("legend");
         $legend.textContent = "Edit words";
-        content.querySelector("input#en").value = $p1.textContent;
-        content.querySelector("input#es").value = $p2.textContent;
+        content.querySelector("textarea#en").value = $p1.textContent;
+        content.querySelector("textarea#es").value = $p2.textContent;
 
         let node = document.importNode(content, true);
         document.body.appendChild(node);
